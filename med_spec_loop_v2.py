@@ -53,12 +53,16 @@ time.tzset()
 
 #sys.exit()
 #%%
-station = sys.argv[1]#'BBWL'#TWLV'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+# This next block of code is the Lemon Creek experiment, run on ibest
+#network = 'LM'
+#station = sys.argv[1]#'BBWL'#TWLV'
+#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
 
+# This next block of code is for the Moscow Mtn test run on my laptop
+network = 'XX'
+station = 'BBGL'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
 #station = 'UI05'#TWLV'
-##data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
 
 
@@ -120,7 +124,7 @@ inv[0][0][0].start_date = UTCDateTime("2017-6-29") # All stations were installed
 # add another inventory object with the same response, but with the correct station names
 #    sta_chan_id = gb[0].get_id()
 #    inv_gb = clone_inv(inv_gb, sta_chan_id[:2], sta_chan_id[3:7])
-inv = clone_inv(inv, 'LM', station)
+inv = clone_inv(inv, network, station)
 
     
 #%%
@@ -161,6 +165,8 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
+flag_up = False
+
 for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
@@ -186,7 +192,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
          #      critical, otherwise spectra are crap, remove its instrument
          #      response at the same time, and then add that trace after the
          #      existing trace, into the stream "st"
-        st = read(file_names[file_counter]).remove_response(inventory=inv, 
+        st += read(file_names[file_counter]).remove_response(inventory=inv, 
             output="VEL", pre_filt=pre_filt)
         st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
 
@@ -194,7 +200,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
         tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
 
         st.trim(starttime=t[i], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
-    
+        flag_up = True
 #    print(tr_trim)
 #    print(st)
     
@@ -203,6 +209,10 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     #     loop.
     if tr_trim.stats.npts < pp['coarse_duration'] * int(tr_trim.stats.sampling_rate) * 1:
         print('Incomplete coarse_duration at ' + UTCDateTime.strftime(t[i], "%d %b %y %H:%M") + ': Skipping')
+
+#        if flag_up:
+#            sys.exit()
+            
         continue
     
 #    print('Calculating median spectra for ' + UTCDateTime.strftime(t[i], "%d/%m/%y %H:%M"))
@@ -227,8 +237,8 @@ with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
 # %% Getting back the objects:
-#with open('output/mpBBWU.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-#    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f)
+with open('mpUI05.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f)
 
 #%% Plot the output of the big runs as median spectrograms
 
@@ -242,8 +252,8 @@ t_datenum = UTC2dn(t) # Convert a np.array of obspy UTCDateTimes into datenums f
 fig, ax = plt.subplots()#figsize=(8, 4))
 qm = ax.pcolormesh(t_datenum, freqs, Pdb_array_mask, cmap='YlOrRd')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
 ax.set_yscale('log')
-ax.set_ylim([0.1, 250])
-#ax.set_ylim([0.5, 20])
+#ax.set_ylim([0.1, 250])
+ax.set_ylim([0.5, 80])
 ax.set_ylabel('Frequency (Hz)')
 
 # Set the date limits for the plot, to make each station's plots consistent
@@ -262,7 +272,7 @@ cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
 plt.title(station)
 
 # #%%
-plt.savefig('Spec_' + station + '_fld', dpi=150) # _ght, _fld
+plt.savefig('Spec_' + station + '_close', dpi=150) # _ght, _fld
 #plt.show()
 
 #%% Obsolete junk down here
