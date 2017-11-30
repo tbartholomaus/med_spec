@@ -34,3 +34,11 @@ def UTC2dn(t):
         t_datenum[i] = date2num(t[i].datetime)
 
     return t_datenum
+
+# Transform an np.array of UTCDateTimes into a np.array of datetime64s, for the purpose of plotting
+def UTC2dt64(t):
+    t_dt64 = np.empty(len(t))
+    for i in range(len(t)):
+        t_dt64[i] = np.datetime64(t[i].datetime)
+
+    return t_dt64
