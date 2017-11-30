@@ -35,7 +35,7 @@ import datetime as dt
 import pickle
 
 import glob
-import os
+import os, time
 import fnmatch
 import sys
 #import imp
@@ -43,13 +43,16 @@ import sys
 
 import get_med_spectra_v1
 from clone_inv import clone_inv
-from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn # custom functions for working with obspy UTCDateTimes
+from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 # custom functions for working with obspy UTCDateTimes
 
-#sys.exit()
+os.environ['TZ'] = 'UTC' # Set the system time to be UTC
+time.tzset()
+
+sys.exit()
 #%%
-station = 'BBEL'#TWLV'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+station = 'BBGL'#TWLV'
+#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
 
 #station = 'UI05'#TWLV'
 ##data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
@@ -83,7 +86,7 @@ elif station == 'BBGU':
 elif station == 'BBWU':
     file_names = file_names[1:] # For BBGU
 elif station == 'BBEL':
-    file_names = file_names[2:] # For BBEL
+    file_names = file_names[1:] # For BBEL
 elif station == 'BBWL':
     file_names = file_names[1:] # For BBWL
 file_counter = 0
@@ -105,19 +108,19 @@ if station[:3] == 'BBG':
     inv[0][0][0].response.response_stages[5].stage_gain = factor_change
     
     #    sta_chan_id = gb[0].get_id()
-
+    # add another inventory object with the same response, but with the correct station names
+    #    inv_gb = clone_inv(inv_gb, sta_chan_id[:2], sta_chan_id[3:7])
+    inv = clone_inv(inv, 'XX', station)
     
 elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
     pre_filt = (0.01, .02, 210, 225.)
     resp_file_nm = resp_dir + "XX.UI02.resp_171112/XX.UI02.HHZ.resp"
     inv = obspy.read_inventory(resp_file_nm)
 
-
+    inv = clone_inv(inv, 'XX', station)
 
 inv[0][0][0].start_date = UTCDateTime("2017-6-29") # All stations were installed on 6/29, after 8 local
-# add another inventory object with the same response, but with the correct station names
-#    inv_gb = clone_inv(inv_gb, sta_chan_id[:2], sta_chan_id[3:7])
-inv = clone_inv(inv, 'LM', station)
+
 
     
 #%%
@@ -132,7 +135,8 @@ last_time = st[-1].stats.endtime
 print('Loading file ' + file_names[0])
 # Read in and remove instrument response from first file
 st = read(file_names[0])
-st.merge(fill_value='interpolate').remove_response(inventory=inv, output="VEL")
+st.merge(fill_value='interpolate').remove_response(inventory=inv, 
+    output="VEL", pre_filt=pre_filt)
 
 #st1 = read('./' + station + '.**..*HZ.2015.248')
 
@@ -215,16 +219,16 @@ print(station + ' run complete: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now
 print('Elapsed time: ' + str(dt.datetime.now() - run_start_time))
 print('===========================================' + '\n\n')
 
-t_datenum = UTC2dn(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
+t_dt64 = UTC2dt64(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
 # %% Pickle the output of the big runs
 
 # Saving the objects:
 with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([t, freqs, Pdb_array, pp, data_dir, station], f)
+    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
 # %% Getting back the objects:
 #with open('output/mpBBWU.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-#    t, freqs, Pdb_array, pp, data_dir, station = pickle.load(f)
+#    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f)
 
 #%% Plot the output of the big runs as median spectrograms
 
