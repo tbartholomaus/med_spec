@@ -47,13 +47,15 @@ from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn # custom functions for w
 
 #sys.exit()
 #%%
-#station = 'BBGL'#TWLV'
-##data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
-
-station = 'UI05'#TWLV'
+station = 'BBGL'#TWLV'
 #data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+
+#station = 'UI05'#TWLV'
+##data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
+
+
 resp_dir = '../RESP/'
 #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/day_vols/data_temp/LEMON/on_ice'
 
@@ -87,7 +89,9 @@ elif station == 'BBWL':
 file_counter = 0
 
 # %% LOAD IN THE INSTRUMENT CORRECTIONS TO CREATE INV OBJECTS
+
 if station[:3] == 'BBG':
+    pre_filt = (0.1, .4, 80, 85.)
     resp_file_gb = resp_dir + "RESP_C100_SRi32_200sps.rsp"
 
     inv = obspy.read_inventory(resp_file_gb)
@@ -106,6 +110,7 @@ if station[:3] == 'BBG':
     inv = clone_inv(inv, 'XX', station)
     
 elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
+    pre_filt = (0.01, .02, 210, 225.)
     resp_file_nm = resp_dir + "XX.UI02.resp_171112/XX.UI02.HHZ.resp"
     inv = obspy.read_inventory(resp_file_nm)
 
@@ -114,13 +119,6 @@ elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
 inv[0][0][0].start_date = UTCDateTime("2017-6-29") # All stations were installed on 6/29, after 8 local
 
 
-
-# add a few 
-
-
-    
-    
-    
     
 #%%
 
@@ -134,7 +132,7 @@ last_time = st[-1].stats.endtime
 print('Loading file ' + file_names[0])
 # Read in and remove instrument response from first file
 st = read(file_names[0])
-st.merge(method=0).remove_response(inventory=inv, output="VEL")
+st.merge(fill_value='interpolate').remove_response(inventory=inv, output="VEL")
 
 #st1 = read('./' + station + '.**..*HZ.2015.248')
 
@@ -180,11 +178,13 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
             break # break out of the for loop when there are no more files to load.
         
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading file: ' + file_names[file_counter])
-         # Read in another day volume as another trace, remove its instrument
+         # Read in another day volume as another trace, pre_filter it (which is
+         #      critical, otherwise spectra are crap, remove its instrument
          #      response at the same time, and then add that trace after the
          #      existing trace, into the stream "st"
-        st += read(file_names[file_counter]).remove_response(inventory=inv, output="VEL")
-        st.merge(method=0) # Merge the new and old day volumes
+        st = read(file_names[file_counter]).remove_response(inventory=inv, 
+            output="VEL", pre_filt=pre_filt)
+        st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
 
         tr_trim = st[0].copy() # copy the trace in st
         tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
@@ -245,6 +245,7 @@ ax.set_ylabel('Frequency (Hz)')
 # Set the date limits for the plot, to make each station's plots consistent
 #ax.set_xlim(mdates.date2num([dt.date(2017, 6, 25), dt.date(2017, 9, 30)]))
 #ax.set_xlim(mdates.date2num([dt.date(2017, 7, 3), dt.date(2017, 7, 8)]))
+ax.set_xlim(mdates.date2num([dt.datetime(2017, 10, 4, 23,0,0), dt.datetime(2017, 10, 7, 1, 0, 0)]))
 
 # Format the xaxis of the pcolormesh to be dates
 ax.xaxis.set_major_locator(mdates.AutoDateLocator())
