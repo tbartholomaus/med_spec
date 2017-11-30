@@ -38,6 +38,7 @@ def clone_inv(inv, net_name, sta_name):
         # This is the location code according to the SEED standard.
         location_code="",
         # Note that these coordinates can differ from the station coordinates.
+        start_date=inv[0][0][0].start_date,
         latitude=  inv[0][0][0].latitude,
         longitude= inv[0][0][0].longitude,
         elevation= inv[0][0][0].elevation,
