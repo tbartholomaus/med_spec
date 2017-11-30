@@ -16,6 +16,9 @@ in an array, and finally plotted.
 
 _v2 Nov 29, 2017: Modified to deconvolve the instrument response from the
     waveforms.
+    
+Can read input station from commandline using:
+    >> nohup python -u ./med_spec_loop_v2.py BBWL > BBWL.log &    
 
 """
 
@@ -50,9 +53,9 @@ time.tzset()
 
 #sys.exit()
 #%%
-station = 'BBGL'#TWLV'
-#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+station = sys.argv[1]#'BBWL'#TWLV'
+data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
 
 #station = 'UI05'#TWLV'
 ##data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
