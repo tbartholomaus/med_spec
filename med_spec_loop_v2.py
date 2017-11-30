@@ -48,7 +48,7 @@ from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 # custom funct
 os.environ['TZ'] = 'UTC' # Set the system time to be UTC
 time.tzset()
 
-sys.exit()
+#sys.exit()
 #%%
 station = 'BBGL'#TWLV'
 #data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
