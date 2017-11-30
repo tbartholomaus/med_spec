@@ -44,11 +44,7 @@ class BBseis:
 stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
 BB = dict()
 
-sample_period = 1/48 # days
 lp_cutoff_period = 6 # hrs
-Nyq = 1/sample_period/2 # 1/days
-lp_cutoff_freq = 1/(lp_cutoff_period/24) #1/days
-b, a = signal.butter(6, lp_cutoff_freq/Nyq, 'low')
 
 
 for station in stations:
@@ -59,6 +55,11 @@ for station in stations:
 # %% Getting back the objects:
     with open('med_spectra/output/mp' + station + '.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
         t, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
+
+    sample_period = pp['coarse_duration'] * pp['coarse_overlap'] / 8644 # days  Rate at which the GHT had been sampled
+    Nyq = 1/sample_period/2 # 1/days
+    lp_cutoff_freq = 1/(lp_cutoff_period/24) # 1/days
+    filt_b, filt_a = signal.butter(6, lp_cutoff_freq/Nyq, 'low') # Construct the filter terms used for lowpass filtering the GHT signal
 
 #sys.exit()
 
@@ -92,7 +93,8 @@ for station in stations:
     if station == 'BBGU':
         BB['BBGU'].GHT_powdB[1833] = -153
 
-    # Create padded timeseries with first and last values
+    # Create padded timeseries with first and last values so as not to throw
+    #    off the filtered time series too much with end effects.  Then discard padded data.
     pad_amount = 20
     first_ind = np.where(BB[station].GHT_powdB > -300)[0][0]
     first = BB[station].GHT_powdB[first_ind+5]
@@ -104,7 +106,7 @@ for station in stations:
 #    padded = np.append(np.repeat(first, pad_amount) , BB[station].GHT_powdB, 
 #                       np.repeat(last, pad_amount))
     # Create _power dB Low-pass Filter_ version of the GHT power
-    BB[ station ].GHT_pdLF = signal.filtfilt(b, a, padded)
+    BB[ station ].GHT_pdLF = signal.filtfilt(filt_b, filt_a, padded)
     BB[ station ].GHT_pdLF[:first_ind] = np.nan
     BB[ station ].GHT_pdLF[last_ind+1:-1] = np.nan
     
@@ -124,9 +126,9 @@ for station in stations:
 with open('BB_GHT.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([BB], f)
 
-# %% Getting back the objects:
-with open('BB_GHT.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-    BB = pickle.load(f, encoding='latin1')[0]
+## %% Getting back the objects:
+#with open('BB_GHT.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+#    BB = pickle.load(f, encoding='latin1')[0]
 
 
 
