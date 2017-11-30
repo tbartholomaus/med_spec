@@ -86,7 +86,7 @@ elif station == 'BBGU':
 elif station == 'BBWU':
     file_names = file_names[1:] # For BBGU
 elif station == 'BBEL':
-    file_names = file_names[1:] # For BBEL
+    file_names = file_names[2:] # For BBEL
 elif station == 'BBWL':
     file_names = file_names[1:] # For BBWL
 file_counter = 0
@@ -107,20 +107,17 @@ if station[:3] == 'BBG':
     inv[0][0][0].response.instrument_sensitivity.value = inst_sens*factor_change
     inv[0][0][0].response.response_stages[5].stage_gain = factor_change
     
-    #    sta_chan_id = gb[0].get_id()
-    # add another inventory object with the same response, but with the correct station names
-    #    inv_gb = clone_inv(inv_gb, sta_chan_id[:2], sta_chan_id[3:7])
-    inv = clone_inv(inv, 'XX', station)
-    
 elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
     pre_filt = (0.01, .02, 210, 225.)
     resp_file_nm = resp_dir + "XX.UI02.resp_171112/XX.UI02.HHZ.resp"
     inv = obspy.read_inventory(resp_file_nm)
 
-    inv = clone_inv(inv, 'XX', station)
 
 inv[0][0][0].start_date = UTCDateTime("2017-6-29") # All stations were installed on 6/29, after 8 local
-
+# add another inventory object with the same response, but with the correct station names
+#    sta_chan_id = gb[0].get_id()
+#    inv_gb = clone_inv(inv_gb, sta_chan_id[:2], sta_chan_id[3:7])
+inv = clone_inv(inv, 'LM', station)
 
     
 #%%
