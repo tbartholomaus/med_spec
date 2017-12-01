@@ -54,14 +54,14 @@ time.tzset()
 #sys.exit()
 #%%
 # This next block of code is the Lemon Creek experiment, run on ibest
-#network = 'LM'
-#station = sys.argv[1]#'BBWL'#TWLV'
-#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+network = 'LM'
+station = sys.argv[1]#'BBWL'#TWLV'
+data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
 
 # This next block of code is for the Moscow Mtn test run on my laptop
-network = 'XX'
-station = 'BBGL'
-data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+#network = 'XX'
+#station = 'BBGL'
+#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
 #station = 'UI05'#TWLV'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
 
