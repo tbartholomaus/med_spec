@@ -78,16 +78,18 @@ pp = {'coarse_duration': 3600.0,  # s
 #data_dir = '/Volumes/disk_staff/timb/Seis_data/day_vols/TAKU/day_volumes/' + station + '/'
 #data_dir = '../mseed_files/'
 
-#file_names = []
-#for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/day_vols/data_temp/LEMON/on_ice/BBGU'):
-#    for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
-#        file_names.append(os.path.join(root, fname_cnt))
+#data_dir = '/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'
+#For working with all the Geobit data
+file_names = []
+for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'+station):
+    for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
+        file_names.append(os.path.join(root, fname_cnt))
 
-file_names = glob.glob(data_dir + station + '/*HZ*')
+#file_names = glob.glob(data_dir + station + '/*HZ*')
 
 file_names.sort()
 if station == 'BBGL' and len(file_names)>5:
-    file_names = file_names[2:] # For BBGL
+    file_names = file_names[11:] # For BBGL  "2" when it's day files, 11 when its 10 min files
 elif station == 'BBGU':
     file_names = file_names[1:] # For BBGU
 elif station == 'BBWU':
@@ -237,7 +239,7 @@ with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
 # %% Getting back the objects:
-with open('output/mpUI05.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+with open('output/mpBBGL.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
     t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
 
 #%% Plot the output of the big runs as median spectrograms
@@ -259,7 +261,7 @@ ax.set_ylabel('Frequency (Hz)')
 # Set the date limits for the plot, to make each station's plots consistent
 #ax.set_xlim(mdates.date2num([dt.date(2017, 6, 25), dt.date(2017, 9, 30)]))
 #ax.set_xlim(mdates.date2num([dt.date(2017, 7, 3), dt.date(2017, 7, 8)]))
-ax.set_xlim(mdates.date2num([dt.datetime(2017, 10, 4, 23,0,0), dt.datetime(2017, 10, 7, 1, 0, 0)]))
+#ax.set_xlim(mdates.date2num([dt.datetime(2017, 10, 4, 23,0,0), dt.datetime(2017, 10, 7, 1, 0, 0)]))
 
 # Format the xaxis of the pcolormesh to be dates
 ax.xaxis.set_major_locator(mdates.AutoDateLocator())
@@ -272,7 +274,7 @@ cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
 plt.title(station)
 
 # #%%
-plt.savefig('Spec_' + station + '_close', dpi=150) # _ght, _fld
+plt.savefig('Spec_' + station + '', dpi=150) # _ght, _fld
 #plt.show()
 
 #%% Obsolete junk down here
