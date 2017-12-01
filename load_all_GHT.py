@@ -53,8 +53,8 @@ for station in stations:
 
 
 # %% Getting back the objects:
-    with open('med_spectra/output/mp' + station + '.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-        t, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
+    with open('output/mp' + station + '.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+        t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
 
     sample_period = pp['coarse_duration'] * pp['coarse_overlap'] / 8644 # days  Rate at which the GHT had been sampled
     Nyq = 1/sample_period/2 # 1/days
@@ -86,6 +86,8 @@ for station in stations:
     GHT_freqs = freqs[ind]
 
     # Integrate the power per frequency over the range of frequencies identified by "ind"
+    #   Integration is the sum of power (not in dB) over some frequency range (fGHT) times
+    #   delta F, the spacing between frequency bins.
     GHT_pow = np.sum(Pow[ind,:], axis=0) * np.unique(np.diff(freqs))
     
     BB[ station ] = BBseis(station, t, 10*np.log10(GHT_pow) ) # Add to a dictionairy item

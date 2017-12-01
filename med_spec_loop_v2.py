@@ -237,8 +237,8 @@ with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
 # %% Getting back the objects:
-with open('mpUI05.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f)
+with open('output/mpUI05.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
 
 #%% Plot the output of the big runs as median spectrograms
 
