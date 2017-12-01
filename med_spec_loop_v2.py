@@ -87,7 +87,7 @@ file_names = glob.glob(data_dir + station + '/*HZ*')
 
 file_names.sort()
 if station == 'BBGL' and len(file_names)>5:
-    file_names = file_names[11:] # For BBGL
+    file_names = file_names[2:] # For BBGL
 elif station == 'BBGU':
     file_names = file_names[1:] # For BBGU
 elif station == 'BBWU':
