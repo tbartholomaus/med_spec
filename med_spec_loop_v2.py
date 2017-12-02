@@ -53,17 +53,19 @@ time.tzset()
 
 #sys.exit()
 #%%
-# This next block of code is the Lemon Creek experiment, run on ibest
-network = 'LM'
-station = sys.argv[1]#'BBWL'#TWLV'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+## This next block of code is the Lemon Creek experiment, run on ibest
+#network = 'LM'
+#station = sys.argv[1]#'BBWL'#TWLV'
+#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
 
 # This next block of code is for the Moscow Mtn test run on my laptop
-#network = 'XX'
+network = 'XX'
+network = 'LM'
 #station = 'BBGL'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
-#station = 'UI05'#TWLV'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
+station = 'BBEL'#TWLV'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/testing/'
 
 
 resp_dir = '../RESP/'
@@ -78,18 +80,12 @@ pp = {'coarse_duration': 3600.0,  # s
 #data_dir = '/Volumes/disk_staff/timb/Seis_data/day_vols/TAKU/day_volumes/' + station + '/'
 #data_dir = '../mseed_files/'
 
-#data_dir = '/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'
-#For working with all the Geobit data
-file_names = []
-for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'+station):
-    for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
-        file_names.append(os.path.join(root, fname_cnt))
-
-#file_names = glob.glob(data_dir + station + '/*HZ*')
+# file_names unless we read the individual 10 min geobit files below:
+file_names = glob.glob(data_dir + station + '/*HZ*')
 
 file_names.sort()
 if station == 'BBGL' and len(file_names)>5:
-    file_names = file_names[11:] # For BBGL  "2" when it's day files, 11 when its 10 min files
+    file_names = file_names[2:] # For BBGL  "2" when it's day files, 11 when its 10 min files
 elif station == 'BBGU':
     file_names = file_names[1:] # For BBGU
 elif station == 'BBWU':
@@ -115,7 +111,17 @@ if station[:3] == 'BBG':
     factor_change = 3.0
     inv[0][0][0].response.instrument_sensitivity.value = inst_sens*factor_change
     inv[0][0][0].response.response_stages[5].stage_gain = factor_change
-    
+
+    #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'
+    #For working with all the Geobit data
+    if network == 'LM':
+        file_names = []
+        for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'+station):
+            for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
+                file_names.append(os.path.join(root, fname_cnt))
+    if station =='BBGL':
+        file_names = file_names[11:]
+
 elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
     pre_filt = (0.01, .02, 210, 225.)
     resp_file_nm = resp_dir + "XX.UI02.resp_171112/XX.UI02.HHZ.resp"
@@ -141,8 +147,8 @@ last_time = st[-1].stats.endtime
 print('Loading file ' + file_names[0])
 # Read in and remove instrument response from first file
 st = read(file_names[0])
-st.merge(fill_value='interpolate').remove_response(inventory=inv, 
-    output="VEL", pre_filt=pre_filt)
+st.merge(fill_value='interpolate')
+st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
 
 #st1 = read('./' + station + '.**..*HZ.2015.248')
 
@@ -151,7 +157,8 @@ st.merge(fill_value='interpolate').remove_response(inventory=inv,
 #    beginning at this time.
 t = np.arange( UTCfloor(st[0].stats.starttime), UTCceil(last_time), 
               pp['coarse_duration'] * pp['coarse_overlap'])#, dtype='datetime64[D]')
-t = t[:-2]
+#t = t[:-2]
+t_dt64 = UTC2dt64(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
 
 Fs_old = 0 # initialize the sampling rate with zero, to ensure proper running in the first iteration
 
@@ -167,13 +174,16 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
+print(st[0].stats)
+print(st_IC[0].stats)
+
 flag_up = False
 
 for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
 #    tr = st[0]
-    tr_trim = st[0].copy() # copy the trace in st
+    tr_trim = st_IC[0].copy() # copy instrument corrected trace
 
     # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
     tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
@@ -182,9 +192,17 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #    print(i)
 #    print(t[i])
 
-    # If you're at the end of the day volume, and the duration of tr_trim is not coarse_duration long:
-    while t[i] + pp['coarse_duration'] > tr_trim.stats.endtime + 0.01:
+#    # If you're at the end of the day volume, and the duration of tr_trim is not coarse_duration long:
+#    while t[i] + pp['coarse_duration'] > tr_trim.stats.endtime + 0.01:
+#    # If the trimmed trace is shorter than it ought to be, load in a new file
+#    while tr_trim.stats.npts/tr_trim.stats.sampling_rate < pp['coarse_duration']:
+
+    # If the trimmed trace ends within pp['coarse_duration'] of the end of the 
+    #   instrument corrected trace, then reload the next file.
+    #   This keeps away from the end of the st_IC, which is tapered.
+    while tr_trim.stats.endtime > st_IC[0].stats.endtime - 2*pp['coarse_duration']:        
         file_counter += 1
+        print (t[i])
         
         if file_counter >= len(file_names):
             break # break out of the for loop when there are no more files to load.
@@ -194,15 +212,19 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
          #      critical, otherwise spectra are crap, remove its instrument
          #      response at the same time, and then add that trace after the
          #      existing trace, into the stream "st"
-        st += read(file_names[file_counter]).remove_response(inventory=inv, 
-            output="VEL", pre_filt=pre_filt)
+        st += read(file_names[file_counter])
         st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
-
-        tr_trim = st[0].copy() # copy the trace in st
+        print(st[0].stats)
+        st.trim(starttime=t[i], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
+        
+        
+        st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+        tr_trim = st_IC[0].copy() # copy the trace in st
         tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
 
-        st.trim(starttime=t[i], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
-        flag_up = True
+        print(st_IC[0].stats)
+        
+#        flag_up = True
 #    print(tr_trim)
 #    print(st)
     
@@ -231,87 +253,9 @@ print(station + ' run complete: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now
 print('Elapsed time: ' + str(dt.datetime.now() - run_start_time))
 print('===========================================' + '\n\n')
 
-t_dt64 = UTC2dt64(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
 # %% Pickle the output of the big runs
 
 # Saving the objects:
-with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+with open('mp' + station + '_test2.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
-# %% Getting back the objects:
-with open('output/mpBBGL.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
-
-#%% Plot the output of the big runs as median spectrograms
-
-mask_val1 = Pdb_array<=-300
-mask_val2 = np.isinf(Pdb_array)
-Pdb_array_mask = np.ma.masked_where(np.any([mask_val1, mask_val2], axis=0), Pdb_array)
-
-t_datenum = UTC2dn(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
-
-#plt.imshow(np.log10(Pxx_vals[0:-2,]), extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
-fig, ax = plt.subplots()#figsize=(8, 4))
-qm = ax.pcolormesh(t_datenum, freqs, Pdb_array_mask, cmap='YlOrRd')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
-ax.set_yscale('log')
-#ax.set_ylim([0.1, 250])
-ax.set_ylim([0.5, 80])
-ax.set_ylabel('Frequency (Hz)')
-
-# Set the date limits for the plot, to make each station's plots consistent
-#ax.set_xlim(mdates.date2num([dt.date(2017, 6, 25), dt.date(2017, 9, 30)]))
-#ax.set_xlim(mdates.date2num([dt.date(2017, 7, 3), dt.date(2017, 7, 8)]))
-#ax.set_xlim(mdates.date2num([dt.datetime(2017, 10, 4, 23,0,0), dt.datetime(2017, 10, 7, 1, 0, 0)]))
-
-# Format the xaxis of the pcolormesh to be dates
-ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-fig.autofmt_xdate()
-
-qm.set_clim(vmin=-210, vmax=-140)
-cb = plt.colorbar(qm, ticks=np.arange(-210,-140, 20))
-cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
-plt.title(station)
-
-# #%%
-plt.savefig('Spec_' + station + '', dpi=150) # _ght, _fld
-#plt.show()
-
-#%% Obsolete junk down here
-
-#==============================================================================
-# ind3Hz = np.where(freqs>3)[0][0]
-# 
-# Pxx_atFreq = Pxx_vals[ind3Hz,:]
-# plt.plot(np.log10(Pxx_atFreq))
-# plt.title(station)
-# plt.savefig(station+'_at3Hz')
-# plt.show()
-#==============================================================================
-
-# %%
-#    
-##Pxx, freqs = signal.psd(tr, NFFT=256, Fs=st[0].stats.sampling_rate, detrend='linear', 
-##                        window=mlab.window_hanning)
-#Pxx, freqs = mlab.psd(tr.data, NFFT=2048, Fs=st[0].stats.sampling_rate, detrend='linear', 
-#                        scale_by_freq=True, window=mlab.window_hanning)
-#plt.plot(freqs[0:50], Pxx[0:50])
-##%%
-## ticker+0
-#                        
-## tr = st[0]
-## tr = tr.copy()
-#
-## tr.trim(ticker, ticker+process_window)
-## st[0].stats.endtime
-## plt.plot(tr.data)
-#tr.plot()
-## plt.plot(freqs, Pxx)
-## plt.plot(med_val)
-## mlab.window_hanning(tr)
-## window = mlab.window_hanning(tr)
-## tr.filter('bandpass', freqmin = 1.5, freqmax = 10)
-#
-#med_val
-#
-#plt.plot(med_val)

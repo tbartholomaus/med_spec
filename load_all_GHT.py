@@ -53,10 +53,10 @@ for station in stations:
 
 
 # %% Getting back the objects:
-    with open('output/mp' + station + '.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+    with open('output_results/mp' + station + '.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
         t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
 
-    sample_period = pp['coarse_duration'] * pp['coarse_overlap'] / 8644 # days  Rate at which the GHT had been sampled
+    sample_period = pp['coarse_duration'] * pp['coarse_overlap'] / 86400 # days  Rate at which the GHT had been sampled
     Nyq = 1/sample_period/2 # 1/days
     lp_cutoff_freq = 1/(lp_cutoff_period/24) # 1/days
     filt_b, filt_a = signal.butter(6, lp_cutoff_freq/Nyq, 'low') # Construct the filter terms used for lowpass filtering the GHT signal
@@ -90,7 +90,7 @@ for station in stations:
     #   delta F, the spacing between frequency bins.
     GHT_pow = np.sum(Pow[ind,:], axis=0) * np.unique(np.diff(freqs))
     
-    BB[ station ] = BBseis(station, t, 10*np.log10(GHT_pow) ) # Add to a dictionairy item
+    BB[ station ] = BBseis(station, t_dt64, 10*np.log10(GHT_pow) ) # Add to a dictionairy item
     
     if station == 'BBGU':
         BB['BBGU'].GHT_powdB[1833] = -153
@@ -114,10 +114,10 @@ for station in stations:
     
     # PLOTTING
     plt.figure()
-    plt.plot(t, BB[station].GHT_powdB)
-    plt.plot(t, BB[ station ].GHT_pdLF)
+    plt.plot(t_dt64, BB[station].GHT_powdB)
+    plt.plot(t_dt64, BB[ station ].GHT_pdLF)
 #    plt.plot(t, padded)
-#    plt.ylim([-160, -135])
+    plt.ylim([-180, -135])
     plt.ylabel( 'Power (dB rel. 1 m^2/s^2)' )
     plt.title(station)
     
@@ -140,8 +140,8 @@ ax[0].plot(BB['BBEU'].t, BB['BBEU'].GHT_powdB)
 ax[0].plot(BB['BBEU'].t, BB['BBEU'].GHT_pdLF)
 ax[1].plot(BB['BBWU'].t, BB['BBWU'].GHT_powdB)
 ax[1].plot(BB['BBWU'].t, BB['BBWU'].GHT_pdLF)
-ax[2].plot(BB['BBGU'].t, BB['BBGU'].GHT_powdB-10)
-ax[2].plot(BB['BBGU'].t, BB['BBGU'].GHT_pdLF-10)
+#ax[2].plot(BB['BBGU'].t, BB['BBGU'].GHT_powdB-10)
+#ax[2].plot(BB['BBGU'].t, BB['BBGU'].GHT_pdLF-10)
 ax[3].plot(BB['BBEL'].t, BB['BBEL'].GHT_powdB)
 ax[3].plot(BB['BBEL'].t, BB['BBEL'].GHT_pdLF)
 ax[4].plot(BB['BBWL'].t, BB['BBWL'].GHT_powdB)
@@ -150,42 +150,3 @@ ax[5].plot(BB['BBGL'].t, BB['BBGL'].GHT_powdB-10)
 ax[5].plot(BB['BBGL'].t, BB['BBGL'].GHT_pdLF-10)
 ax[0].set_ylim([-170, -150])
 
-
-#%% Plot the output of the big runs as median spectrograms
-sys.exit()
-
-
-#t_datenum = UTC2dn(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
-t_datenum = t # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
-
-
-#plt.imshow(np.log10(Pxx_vals[0:-2,]), extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
-fig, ax = plt.subplots()#figsize=(8, 4))
-qm = ax.pcolormesh(t_datenum, freqs, Pdb_array_mask, cmap='YlOrRd')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
-#qm = ax.pcolormesh(t_datenum, freqs, Pdb_array_mask, cmap='coolwarm')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
-ax.set_yscale('log')
-ax.set_ylim([0.1, 250])
-#ax.set_ylim([0.5, 20])
-ax.set_ylabel('Frequency (Hz)')
-
-# Set the date limits for the plot, to make each station's plots consistent
-ax.set_xlim(mdates.date2num([dt.date(2017, 6, 25), dt.date(2017, 9, 30)]))
-#ax.set_xlim(mdates.date2num([dt.date(2017, 7, 3), dt.date(2017, 7, 8)]))
-
-# Format the xaxis of the pcolormesh to be dates
-ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-fig.autofmt_xdate()
-
-qm.set_clim(vmin=-210, vmax=-140)
-#qm.set_clim(vmin=-20, vmax=20)
-#qm.set_clim(vmin=0, vmax=20)
-#cb = plt.colorbar(qm)
-cb = plt.colorbar(qm, ticks=np.arange(-210,-140, 20))
-cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
-
-plt.title(station)
-
-# #%%
-#plt.savefig('Spec_' + station + '_fld', dpi=150) # _ght, _fld
-plt.show()

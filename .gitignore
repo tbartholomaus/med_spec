@@ -11,3 +11,8 @@ z_output_no_IC/mpBBGL.pickle
 z_output_no_IC/mpBBGU.pickle
 z_output_no_IC/mpBBWL.pickle
 z_output_no_IC/mpBBWU.pickle
+*.log
+*.pickle
+output/mpBBGL_short.pickle
+output/mpBBGL_short.pickle
+*.pickle
