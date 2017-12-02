@@ -174,23 +174,28 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
-print(st[0].stats)
-print(st_IC[0].stats)
+print(st[0])
+print(st_IC[0])
 
 flag_up = False
-IC_counter = 999 # Arbitrary number to initialize IC_counter
-
+IC_counter = 9999 # Arbitrary number to initialize IC_counter
+print('--- Moving into the for loop ---')
 for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
 #    tr = st[0]
-    IC_counter += 1
-    
-    if IC_counter == 2:
-        st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
-        print('--- Re-initialize st_IC -----')
-        print(st_IC)
-        print(t[i])
+
+#    IC_counter += 1
+#    
+#    if IC_counter == 3: # Note that this threshold IC_counter value is ad-hoc and may not work if different amounts of IC tapering are done, or if the pp['coarse_duration'] is different than 3600
+#        # Now that t[i] has moved on IC_counter timesteps away from the 
+#        #   beginning of st, remove the instrument response, which will also
+#        #   end up with a tapered st_IC.  We don't want to look at the data
+#        #   which has been tapered.
+#        st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+#        print('--- Re-initialize st_IC -----')
+#        print(t[i])
+#        print(st_IC)
         
     tr_trim = st_IC[0].copy() # copy instrument corrected trace
     # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
@@ -205,28 +210,29 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #    # If the trimmed trace is shorter than it ought to be, load in a new file
 #    while tr_trim.stats.npts/tr_trim.stats.sampling_rate < pp['coarse_duration']:
 
-    # If the trimmed trace ends within pp['coarse_duration'] of the end of the 
-    #   instrument corrected trace, then reload the next file.
-    #   This keeps away from the end of the st_IC, which is tapered.
-    while tr_trim.stats.endtime > st_IC[0].stats.endtime - 2*pp['coarse_duration']:        
+    # If the trimmed trace ends within 2*pp['coarse_duration'] of the end of  
+    #   the data stream, then reload the next file.
+    #   This keeps away tr_trim away from the end of the st_IC, which is tapered.
+    while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:        
         file_counter += 1
-        print('--- Load in a new stream ---')
+        print('--- Try to load in a new stream ---')
         print (t[i])
         
         if file_counter >= len(file_names):
             break # break out of the for loop when there are no more files to load.
         
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading file: ' + file_names[file_counter])
-         # Read in another day volume as another trace, pre_filter it (which is
-         #      critical, otherwise spectra are crap, remove its instrument
-         #      response at the same time, and then add that trace after the
-         #      existing trace, into the stream "st"
+        # Read in another day volume as another trace, and merge it 
+        #   into the stream "st".  When the st is instrument corrected, t[i]
+        #   will have moved on, away from the beginning of the st.
         st += read(file_names[file_counter])
         st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
         print('st')
-        print(st[0].stats)
-        st.trim(starttime=t[i], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
-        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
+        print(st[0])
+        st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
+        st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+        print(st_IC)
+#        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
 
 #    print(tr_trim)
 #    print(st)
@@ -248,7 +254,6 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
     Pdb_array[:,i] = Pdb[:freq_nums] # Save the median spectra into an array
     
-#makeerror # junk command that doesn't exist, and will throw an error
 
 # At the end of the big for loop:
 print('\n\n' + '===========================================')
