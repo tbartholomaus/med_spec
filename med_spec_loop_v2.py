@@ -178,13 +178,21 @@ print(st[0].stats)
 print(st_IC[0].stats)
 
 flag_up = False
+IC_counter = 999 # Arbitrary number to initialize IC_counter
 
 for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
 #    tr = st[0]
+    IC_counter += 1
+    
+    if IC_counter == 2:
+        st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+        print('--- Re-initialize st_IC -----')
+        print(st_IC)
+        print(t[i])
+        
     tr_trim = st_IC[0].copy() # copy instrument corrected trace
-
     # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
     tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
     
@@ -202,6 +210,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     #   This keeps away from the end of the st_IC, which is tapered.
     while tr_trim.stats.endtime > st_IC[0].stats.endtime - 2*pp['coarse_duration']:        
         file_counter += 1
+        print('--- Load in a new stream ---')
         print (t[i])
         
         if file_counter >= len(file_names):
@@ -214,17 +223,11 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
          #      existing trace, into the stream "st"
         st += read(file_names[file_counter])
         st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
+        print('st')
         print(st[0].stats)
         st.trim(starttime=t[i], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
-        
-        
-        st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
-        tr_trim = st_IC[0].copy() # copy the trace in st
-        tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
+        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
 
-        print(st_IC[0].stats)
-        
-#        flag_up = True
 #    print(tr_trim)
 #    print(st)
     
