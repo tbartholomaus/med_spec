@@ -53,19 +53,19 @@ time.tzset()
 
 #sys.exit()
 #%%
-## This next block of code is the Lemon Creek experiment, run on ibest
-#network = 'LM'
-#station = sys.argv[1]#'BBWL'#TWLV'
-#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-
-# This next block of code is for the Moscow Mtn test run on my laptop
-network = 'XX'
+# This next block of code is the Lemon Creek experiment, run on ibest
 network = 'LM'
-#station = 'BBGL'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
-station = 'BBEL'#TWLV'
-data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
-data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/testing/'
+station = sys.argv[1]#'BBWL'#TWLV'
+data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+
+## This next block of code is for the Moscow Mtn test run on my laptop
+#network = 'XX'
+#network = 'LM'
+##station = 'BBGL'
+##data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+#station = 'BBEL'#TWLV'
+#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
+##data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/testing/'
 
 
 resp_dir = '../RESP/'
@@ -112,15 +112,15 @@ if station[:3] == 'BBG':
     inv[0][0][0].response.instrument_sensitivity.value = inst_sens*factor_change
     inv[0][0][0].response.response_stages[5].stage_gain = factor_change
 
-    #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'
-    #For working with all the Geobit data
-    if network == 'LM':
-        file_names = []
-        for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'+station):
-            for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
-                file_names.append(os.path.join(root, fname_cnt))
-    if station =='BBGL':
-        file_names = file_names[11:]
+#    #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'
+#    #For working with all the Geobit data
+#    if network == 'LM':
+#        file_names = []
+#        for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'+station):
+#            for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
+#                file_names.append(os.path.join(root, fname_cnt))
+#    if station =='BBGL':
+#        file_names = file_names[11:]
 
 elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
     pre_filt = (0.01, .02, 210, 225.)
@@ -174,12 +174,6 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
-print(st[0])
-print(st_IC[0])
-
-flag_up = False
-IC_counter = 9999 # Arbitrary number to initialize IC_counter
-print('--- Moving into the for loop ---')
 for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
@@ -215,8 +209,8 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     #   This keeps away tr_trim away from the end of the st_IC, which is tapered.
     while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:        
         file_counter += 1
-        print('--- Try to load in a new stream ---')
-        print (t[i])
+#        print('--- Try to load in a new stream ---')
+#        print (t[i])
         
         if file_counter >= len(file_names):
             break # break out of the for loop when there are no more files to load.
@@ -227,11 +221,11 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
         #   will have moved on, away from the beginning of the st.
         st += read(file_names[file_counter])
         st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
-        print('st')
-        print(st[0])
+#        print('st')
+#        print(st[0])
         st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
         st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
-        print(st_IC)
+#        print(st_IC)
 #        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
 
 #    print(tr_trim)
@@ -264,6 +258,6 @@ print('===========================================' + '\n\n')
 # %% Pickle the output of the big runs
 
 # Saving the objects:
-with open('mp' + station + '_test2.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
