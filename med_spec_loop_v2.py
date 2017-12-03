@@ -89,7 +89,7 @@ if station == 'BBGL' and len(file_names)>5:
 elif station == 'BBGU':
     file_names = file_names[1:] # For BBGU
 elif station == 'BBWU':
-    file_names = file_names[1:] # For BBGU
+    file_names = file_names[1:] # For BBWU
 elif station == 'BBEL':
     file_names = file_names[2:] # For BBEL
 elif station == 'BBWL':
