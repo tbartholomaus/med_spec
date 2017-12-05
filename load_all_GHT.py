@@ -9,6 +9,8 @@ Created on Fri Nov 10 19:35:50 2017
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+from scipy.interpolate import interp1d
+
 #import matplotlib.mlab as mlab
 from matplotlib import dates as mdates
 
@@ -16,7 +18,7 @@ from matplotlib import dates as mdates
 #from obspy import UTCDateTime
 #from obspy import signal
 
-import datetime as dt
+#import datetime as dt
 import pickle
 
 #import glob
@@ -48,7 +50,8 @@ stations = ['BBWU', 'BBEU', 'BBWL', 'BBEL', 'BBGL']
 BB = dict()
 
 lp_cutoff_period = 6 # hrs
-
+t_interp = np.arange('2017-06-29T00:00Z', '2017-09-26T00:00Z', 
+                     np.timedelta64(15, 'm'), dtype='Datetime64')
 
 for station in stations:
     print(station)
@@ -78,14 +81,14 @@ for station in stations:
 
 #%%
 
-    t = np.arange('2017-06-29T00:00Z', '2017-09-25T23:00Z', np.timedelta64(30, 'm'), dtype='Datetime64')
-    t.shape
-    t = t[:Pdb_array.shape[1]]
+#    t = np.arange('2017-06-29T00:00Z', '2017-09-25T23:00Z', np.timedelta64(15, 'm'), dtype='Datetime64')
+#    t.shape
+#    t = t[:Pdb_array.shape[1]]
     
     
     Pow = 10**(Pdb_array/10) # Power not in dB, but vel squared/Hz
     fGHT = [1.5, 10]
-#    fGHT = [15, 35]
+    fGHT = [15, 35]
     ind = np.where(np.all([freqs>fGHT[0], freqs<fGHT[1]], axis=0))[0]
     GHT_freqs = freqs[ind]
 
@@ -107,6 +110,8 @@ for station in stations:
     first = BB[station].powdB[first_ind+5]
     last_ind = np.where(BB[station].powdB > -300)[0][-1]
     last  = BB[station].powdB[last_ind-5 ]
+    first_ind = first_ind +1 # Be a little extra conservative- cut out the first and last actual, good points.
+    last_ind  = last_ind  -1
     padded = BB[station].powdB.copy()
     padded[:first_ind] = first
     padded[last_ind+1:] = last
@@ -136,7 +141,11 @@ for station in stations:
     BB[ station ].Ta_LF[:first_ind] = np.nan
     BB[ station ].Ta_LF[last_ind+1:-1] = np.nan
 
-
+    
+    interp_func = interp1d(BB[station].t.astype('datetime64[m]').astype('int64'), 
+                           BB[station].Ta_LF, fill_value='extrapolate', 
+                           kind='linear')#, bounds_error=False,)
+    BB[ station ].Ta_int = interp_func(t_interp.astype('int64'))
 #    # PLOTTING
 #    fig, ax = plt.subplots(2, sharex=True)
 #    ax[0].plot(t_dt64, BB[station].powdB)
@@ -156,8 +165,8 @@ for station in stations:
 
 
 # Saving the objects:
-with open('BB_GHT.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([BB, fGHT], f)
+with open('BB_GHT' + str(fGHT) + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+    pickle.dump([BB, fGHT, t_interp], f)
 
 ## %% Getting back the objects:
 #with open('BB_GHT.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
@@ -182,3 +191,51 @@ with open('BB_GHT.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
 #ax[0].set_ylim([-170, -150])
 #fig.autofmt_xdate()
 
+# %%
+# %%
+
+
+fig = plt.figure()
+plt.plot(t_interp, BB['BBEU'].Ta_int - BB['BBWU'].Ta_int, label='BBEU')
+plt.plot(t_interp, BB['BBEL'].Ta_int - BB['BBWU'].Ta_int, label='BBEL')
+plt.plot(t_interp, BB['BBWL'].Ta_int - BB['BBWU'].Ta_int, label='BBWL')
+plt.plot(t_interp, BB['BBGL'].Ta_int - BB['BBWU'].Ta_int, label='BBGL')
+plt.legend()
+fig.autofmt_xdate()
+
+# %%
+fig, ax = plt.subplots(ncols=3, sharey=True)
+for i in range(3):
+    ax[i].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF, label='BBEU')
+    ax[i].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF, label='BBWU')
+    ax[i].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF, label='BBEL')
+    ax[i].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF, label='BBWL')
+    ax[i].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF, label='BBGL')
+ax[2].legend()
+fig.autofmt_xdate()
+
+#%%
+fig, ax = plt.subplots(6, sharex=True, sharey=True)
+ax[0].plot(BB['BBEU'].t, BB['BBEU'].T_amp)
+ax[0].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF)
+ax[0].plot(t_interp, BB['BBEU'].Ta_int)
+ax[1].plot(BB['BBWU'].t, BB['BBWU'].T_amp)
+ax[1].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF)
+ax[1].plot(t_interp, BB['BBWU'].Ta_int)
+#ax[2].plot(BB['BBGU'].t, BB['BBGU'].T_amp)
+#ax[2].plot(BB['BBGU'].t, BB['BBGU'].Ta_LF)
+ax[3].plot(BB['BBEL'].t, BB['BBEL'].T_amp)
+ax[3].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF)
+ax[4].plot(BB['BBWL'].t, BB['BBWL'].T_amp)
+ax[4].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF)
+ax[5].plot(BB['BBGL'].t, BB['BBGL'].T_amp)
+ax[5].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF)
+ax[0].set_ylim([0, 10e-9])
+ax[0].set_ylabel('BBEU')
+ax[1].set_ylabel('BBWU')
+ax[2].set_ylabel('BBGU')
+ax[3].set_ylabel('BBEL')
+ax[4].set_ylabel('BBWL')
+ax[5].set_ylabel('BBGL')
+
+fig.autofmt_xdate()
