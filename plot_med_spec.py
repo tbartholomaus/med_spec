@@ -42,32 +42,35 @@ def spec_plt(plttype, freqlims, datelims):
     plt.title(station)
     
     # #%%
-#    plt.savefig('output_figs/Spec_' + plttype + '_' + station + '', dpi=150) # _ght, _fld
+    plt.savefig('output_figs/Spec_' + plttype + '_' + station + '', dpi=150) # _ght, _fld
     plt.show()
 
 # %% Getting back the objects:
-station = 'BBEL'
-filename = 'mpBBEL_test2.pickle'
-#filename = 'output_results/mp' + station + '.pickle'
-with open(filename, 'rb') as f:  # Python 3: open(..., 'rb')
-    t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
-
-#%%
-#datelims = np.array(['2017-10-02', '2017-10-07'], dtype='datetime64' )
-
-
-plttype = 'comp'
-freqlims = [0.1, 250] # [0.5, 80]
-datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
-spec_plt(plttype, freqlims, datelims)
-
-plttype = 'fld'
-freqlims = [0.5, 80]
-datelims = np.array(['2017-07-02', '2017-07-08'], dtype='datetime64' )
-spec_plt(plttype, freqlims, datelims)
-
-plttype = 'ght'
-freqlims = [1.5, 20] # [0.5, 80]
-datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
-spec_plt(plttype, freqlims, datelims)
+#stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
+#
+#for station in stations:
+    station = 'BBEU'
+    #filename = 'mpBBEL_test2.pickle'
+    filename = 'output_results/mp' + station + '.pickle'
+    with open(filename, 'rb') as f:  # Python 3: open(..., 'rb')
+        t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
+    
+    #%%
+    #datelims = np.array(['2017-10-02', '2017-10-07'], dtype='datetime64' )
+    
+    
+    plttype = 'comp'
+    freqlims = [0.1, 250] # [0.5, 80]
+    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
+    
+    plttype = 'fld'
+    freqlims = [0.5, 220]
+    datelims = np.array(['2017-07-02', '2017-07-08'], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
+    
+    plttype = 'ght'
+    freqlims = [1.5, 30] # [0.5, 80]
+    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
 

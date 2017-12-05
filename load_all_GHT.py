@@ -46,8 +46,11 @@ class BBseis:
 
 #%%
 stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
-stations = ['BBWU', 'BBEU', 'BBWL', 'BBEL', 'BBGL']
+#stations = ['BBWU', 'BBEU', 'BBWL', 'BBEL', 'BBGL']
 BB = dict()
+
+fGHT = [1.5, 10]
+#fGHT = [15, 35]
 
 lp_cutoff_period = 6 # hrs
 t_interp = np.arange('2017-06-29T00:00Z', '2017-09-26T00:00Z', 
@@ -78,6 +81,11 @@ for station in stations:
 ###xx = np.median(Pdb_array_mask, axis=1)
 ###Pdb_array_mask - xx[:,np.newaxis]
 ##Pdb_array_mask = Pdb_array_mask - xx[:,np.newaxis]
+    if station == 'BBGU':
+        t         = t[:2244]
+        t_dt64    = t_dt64[:2244]
+        Pdb_array = Pdb_array[:,:2244]
+
 
 #%%
 
@@ -87,8 +95,6 @@ for station in stations:
     
     
     Pow = 10**(Pdb_array/10) # Power not in dB, but vel squared/Hz
-    fGHT = [1.5, 10]
-    fGHT = [15, 35]
     ind = np.where(np.all([freqs>fGHT[0], freqs<fGHT[1]], axis=0))[0]
     GHT_freqs = freqs[ind]
 
@@ -99,10 +105,6 @@ for station in stations:
     
     BB[ station ] = BBseis(station, t_dt64, 10*np.log10(GHT_pow) ) # Add to a dictionairy item
     
-    if station == 'BBGU':
-        BB['BBGU'].powdB[1833] = -153
-        BB['BBGU'].T_amp[1833] = np.sqrt( 10*np.log10(-153) )
-
     # Create padded timeseries with first and last values so as not to throw
     #    off the filtered time series too much with end effects.  Then discard padded data.
     pad_amount = 20
@@ -117,21 +119,26 @@ for station in stations:
     padded[last_ind+1:] = last
 #    padded = np.append(np.repeat(first, pad_amount) , BB[station].GHT_powdB, 
 #                       np.repeat(last, pad_amount))
+
+    # Define and nan out the tremor amplitude:
+    BB[ station ].T_amp = np.sqrt(GHT_pow)
+    BB[ station ].T_amp[:first_ind] = np.nan
+    BB[ station ].T_amp[last_ind+1:-1] = np.nan
+
+    if station == 'BBGU':
+        BB['BBGU'].powdB[1833] = -153
+        BB['BBGU'].T_amp[1831:1836] = 8.7e-9
+
     # Create _power dB Low-pass Filter_ version of the GHT power
     BB[ station ].pdB_LF = signal.filtfilt(filt_b, filt_a, padded)
     BB[ station ].pdB_LF[:first_ind] = np.nan
     BB[ station ].pdB_LF[last_ind+1:-1] = np.nan
 
-# Nan out the unfiltered power
+    # Nan out the unfiltered power
     BB[ station ].powdB[:first_ind] = np.nan
     BB[ station ].powdB[last_ind+1:-1] = np.nan
 
-# Define and nan out the tremor amplitude:
-    BB[ station ].T_amp = np.sqrt(GHT_pow)
-    BB[ station ].T_amp[:first_ind] = np.nan
-    BB[ station ].T_amp[last_ind+1:-1] = np.nan
-
-# Filter the tremor amplitude:
+    # Filter the tremor amplitude:
     padded = BB[ station ].T_amp.copy()
     first = padded[first_ind+5]
     last  = padded[last_ind-5 ]
@@ -203,34 +210,56 @@ plt.plot(t_interp, BB['BBGL'].Ta_int - BB['BBWU'].Ta_int, label='BBGL')
 plt.legend()
 fig.autofmt_xdate()
 
-# %%
+# %%Look at the relative amplitudes
 fig, ax = plt.subplots(ncols=3, sharey=True)
 for i in range(3):
-    ax[i].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF, label='BBEU')
-    ax[i].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF, label='BBWU')
-    ax[i].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF, label='BBEL')
-    ax[i].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF, label='BBWL')
-    ax[i].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF, label='BBGL')
+    ax[i].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF, label='BBEU', color='darkred')
+    ax[i].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF, label='BBWU', color='darkblue')
+    ax[i].plot(BB['BBGU'].t, BB['BBGU'].Ta_LF, label='BBGU', color='darkgreen')
+    ax[i].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF, label='BBEL', color='lightcoral')
+    ax[i].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF, label='BBWL', color='lightblue')
+    ax[i].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF, label='BBGL', color='lightgreen')
 ax[2].legend()
+fig.autofmt_xdate()
+ax[0].set_ylim([0e-9, 16e-9])
+ax[0].set_xlim(np.array(['2017-07-02', '2017-07-08'],
+                        dtype='datetime64' ))
+ax[1].set_xlim(np.array(['2017-08-22', '2017-08-28'],
+                        dtype='datetime64' ))
+ax[2].set_xlim(np.array(['2017-09-10', '2017-09-16'],
+                        dtype='datetime64' ))
+ax[0].set_ylabel('LP Filtered Tremor Amplitude (m/s)')
+
+#%%
+plt.figure(11)
+plt.clf()
+
+plt.plot(BB['BBEU'].t, BB['BBEU'].Ta_LF, label='BBEU', color='darkred')
+plt.plot(BB['BBWU'].t, BB['BBWU'].Ta_LF, label='BBWU', color='darkblue')
+plt.plot(BB['BBGU'].t, BB['BBGU'].Ta_LF, label='BBGU', color='darkgreen')
+plt.plot(BB['BBEL'].t, BB['BBEL'].Ta_LF, label='BBEL', color='lightcoral')
+plt.plot(BB['BBWL'].t, BB['BBWL'].Ta_LF, label='BBWL', color='lightblue')
+plt.plot(BB['BBGL'].t, BB['BBGL'].Ta_LF, label='BBGL', color='lightgreen')
 fig.autofmt_xdate()
 
 #%%
-fig, ax = plt.subplots(6, sharex=True, sharey=True)
+fig.clf(10)
+fig, ax = plt.subplots(6, sharex=True, sharey=True, num=10)
 ax[0].plot(BB['BBEU'].t, BB['BBEU'].T_amp)
-ax[0].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF)
-ax[0].plot(t_interp, BB['BBEU'].Ta_int)
+#ax[0].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF)
+#ax[0].plot(t_interp, BB['BBEU'].Ta_int)
 ax[1].plot(BB['BBWU'].t, BB['BBWU'].T_amp)
-ax[1].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF)
-ax[1].plot(t_interp, BB['BBWU'].Ta_int)
-#ax[2].plot(BB['BBGU'].t, BB['BBGU'].T_amp)
+#ax[1].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF)
+#ax[1].plot(t_interp, BB['BBWU'].Ta_int)
+ax[2].plot(BB['BBGU'].t, BB['BBGU'].T_amp)
 #ax[2].plot(BB['BBGU'].t, BB['BBGU'].Ta_LF)
 ax[3].plot(BB['BBEL'].t, BB['BBEL'].T_amp)
-ax[3].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF)
+#ax[3].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF)
 ax[4].plot(BB['BBWL'].t, BB['BBWL'].T_amp)
-ax[4].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF)
+#ax[4].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF)
 ax[5].plot(BB['BBGL'].t, BB['BBGL'].T_amp)
-ax[5].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF)
-ax[0].set_ylim([0, 10e-9])
+#ax[5].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF)
+ax[0].set_ylim([0, 15e-9])
 ax[0].set_ylabel('BBEU')
 ax[1].set_ylabel('BBWU')
 ax[2].set_ylabel('BBGU')
@@ -238,4 +267,6 @@ ax[3].set_ylabel('BBEL')
 ax[4].set_ylabel('BBWL')
 ax[5].set_ylabel('BBGL')
 
+fig.subplots_adjust(hspace=.0001)
 fig.autofmt_xdate()
+plt.tight_layout()
