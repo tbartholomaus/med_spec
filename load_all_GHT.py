@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.interpolate import interp1d
+from scipy.ndimage.filters import median_filter
 
 #import matplotlib.mlab as mlab
 from matplotlib import dates as mdates
@@ -50,7 +51,7 @@ stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
 BB = dict()
 
 fGHT = [1.5, 10]
-#fGHT = [15, 35]
+fGHT = [15, 35]
 
 lp_cutoff_period = 6 # hrs
 t_interp = np.arange('2017-06-29T00:00Z', '2017-09-26T00:00Z', 
@@ -86,7 +87,22 @@ for station in stations:
         t_dt64    = t_dt64[:2244]
         Pdb_array = Pdb_array[:,:2244]
 
-
+##%%
+#plt.clf()
+#station = 'BBWL'
+#bad_ind = np.where(BB[station].T_amp>3e-8)
+#BB[station].T_amp[bad_ind] = np.nan
+#plt.plot(BB[station].t, BB[station].T_amp)
+#
+##%%
+#import statsmodels.api as sm
+#lowess = sm.nonparametric.lowess
+#
+##f = 1/(doy[-1]-doy[0]) # span equals 1 day; note that 'doy' is time in day of year format
+#frac = .5 * 86400/( (BB[station].t[-1] - BB[station].t[0]).astype('int64') )
+#n_est = lowess(BB[station].T_amp, BB[station].t, frac=frac, it=5, return_sorted=False)# delta=0.01)
+#
+#plt.plot(BB[station].t, n_est)
 #%%
 
 #    t = np.arange('2017-06-29T00:00Z', '2017-09-25T23:00Z', np.timedelta64(15, 'm'), dtype='Datetime64')
@@ -144,7 +160,19 @@ for station in stations:
     last  = padded[last_ind-5 ]
     padded[:first_ind] = first
     padded[last_ind+1:] = last
-    BB[ station ].Ta_LF = signal.filtfilt(filt_b, filt_a, padded)
+#    BB[ station ].Ta_LF = signal.filtfilt(filt_b, filt_a, padded)
+    
+    # Implement the lowess smoothing
+    bad_ind = np.where(BB[station].T_amp>3e-8)
+    BB[station].T_amp[bad_ind] = np.nan
+    import statsmodels.api as sm
+    lowess = sm.nonparametric.lowess
+    frac = .5 * 86400/( (BB[station].t[-1] - BB[station].t[0]).astype('int64') )
+    BB[ station ].Ta_LF = lowess(BB[station].T_amp, BB[station].t, frac=frac, it=5, return_sorted=False)# delta=0.01)
+
+#    BB[ station ].Ta_LF = median_filter(BB[station].T_amp, size=19)
+    
+    
     BB[ station ].Ta_LF[:first_ind] = np.nan
     BB[ station ].Ta_LF[last_ind+1:-1] = np.nan
 
@@ -169,7 +197,7 @@ for station in stations:
 #    fig.autofmt_xdate()
 
 
-
+#sys.exit()
 
 # Saving the objects:
 with open('BB_GHT' + str(fGHT) + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
@@ -246,19 +274,19 @@ fig.autofmt_xdate()
 fig.clf(10)
 fig, ax = plt.subplots(6, sharex=True, sharey=True, num=10)
 ax[0].plot(BB['BBEU'].t, BB['BBEU'].T_amp)
-#ax[0].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF)
+ax[0].plot(BB['BBEU'].t, BB['BBEU'].Ta_LF)
 #ax[0].plot(t_interp, BB['BBEU'].Ta_int)
 ax[1].plot(BB['BBWU'].t, BB['BBWU'].T_amp)
-#ax[1].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF)
+ax[1].plot(BB['BBWU'].t, BB['BBWU'].Ta_LF)
 #ax[1].plot(t_interp, BB['BBWU'].Ta_int)
 ax[2].plot(BB['BBGU'].t, BB['BBGU'].T_amp)
-#ax[2].plot(BB['BBGU'].t, BB['BBGU'].Ta_LF)
+ax[2].plot(BB['BBGU'].t, BB['BBGU'].Ta_LF)
 ax[3].plot(BB['BBEL'].t, BB['BBEL'].T_amp)
-#ax[3].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF)
+ax[3].plot(BB['BBEL'].t, BB['BBEL'].Ta_LF)
 ax[4].plot(BB['BBWL'].t, BB['BBWL'].T_amp)
-#ax[4].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF)
+ax[4].plot(BB['BBWL'].t, BB['BBWL'].Ta_LF)
 ax[5].plot(BB['BBGL'].t, BB['BBGL'].T_amp)
-#ax[5].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF)
+ax[5].plot(BB['BBGL'].t, BB['BBGL'].Ta_LF)
 ax[0].set_ylim([0, 15e-9])
 ax[0].set_ylabel('BBEU')
 ax[1].set_ylabel('BBWU')

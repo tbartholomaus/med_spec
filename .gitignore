@@ -16,3 +16,5 @@ z_output_no_IC/mpBBWU.pickle
 output/mpBBGL_short.pickle
 output/mpBBGL_short.pickle
 *.pickle
+plot_med_spec_HF.py
+*.afdesign

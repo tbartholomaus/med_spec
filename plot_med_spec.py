@@ -46,10 +46,10 @@ def spec_plt(plttype, freqlims, datelims):
     plt.show()
 
 # %% Getting back the objects:
-#stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
+stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
 #
-#for station in stations:
-    station = 'BBEU'
+for station in stations:
+#    station = 'BBEU'
     #filename = 'mpBBEL_test2.pickle'
     filename = 'output_results/mp' + station + '.pickle'
     with open(filename, 'rb') as f:  # Python 3: open(..., 'rb')
@@ -66,7 +66,7 @@ def spec_plt(plttype, freqlims, datelims):
     
     plttype = 'fld'
     freqlims = [0.5, 220]
-    datelims = np.array(['2017-07-02', '2017-07-08'], dtype='datetime64' )
+    datelims = np.array(['2017-07-03', '2017-07-09'], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
     
     plttype = 'ght'
