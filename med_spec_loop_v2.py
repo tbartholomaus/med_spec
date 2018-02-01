@@ -56,7 +56,8 @@ time.tzset()
 # This next block of code is the Lemon Creek experiment, run on ibest
 network = 'LM'
 station = sys.argv[1]#'BBWL'#TWLV'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/DATA_RAW/'
 
 ## This next block of code is for the Moscow Mtn test run on my laptop
 #network = 'XX'
