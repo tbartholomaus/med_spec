@@ -8,6 +8,7 @@ Created on Fri Dec  1 13:06:40 2017
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import matplotlib.dates as mdates
 
 #%% Plot the output of the big runs as median spectrograms
 
@@ -33,7 +34,9 @@ def spec_plt(plttype, freqlims, datelims):
     
     # Format the xaxis of the pcolormesh to be dates
     #ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+#    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+#    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b, %H:%M'))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
     fig.autofmt_xdate()
     
     qm.set_clim(vmin=-200, vmax=-150)
@@ -46,7 +49,8 @@ def spec_plt(plttype, freqlims, datelims):
     plt.show()
 
 # %% Getting back the objects:
-stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
+#stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
+stations = ['BBGU', 'BBGL']
 #
 for station in stations:
 #    station = 'BBEU'
@@ -59,18 +63,37 @@ for station in stations:
     #datelims = np.array(['2017-10-02', '2017-10-07'], dtype='datetime64' )
     
     
-    plttype = 'comp'
-    freqlims = [0.1, 250] # [0.5, 80]
-    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
-    spec_plt(plttype, freqlims, datelims)
+#    plttype = 'comp'
+#    freqlims = [0.1, 250] # [0.5, 80]
+#    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
+#    
+#    plttype = 'fld'
+#    freqlims = [0.5, 220]
+#    datelims = np.array(['2017-07-03', '2017-07-09'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
+#    
+#    plttype = 'ght'
+#    freqlims = [1.5, 30] # [0.5, 80]
+#    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
+#
+#    plttype = 'spd'
+#    freqlims = [0.1, 100] # [0.5, 80]
+#    datelims = np.array(['2017-07-22', '2017-07-31'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
     
-    plttype = 'fld'
-    freqlims = [0.5, 220]
-    datelims = np.array(['2017-07-03', '2017-07-09'], dtype='datetime64' )
-    spec_plt(plttype, freqlims, datelims)
-    
-    plttype = 'ght'
-    freqlims = [1.5, 30] # [0.5, 80]
-    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
+    plttype = 'glac_comp'
+    freqlims = [0.2, 80] # [0.5, 80]
+    datelims = np.array(['2017-06-30', '2017-08-15'], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
 
+#    plttype = 'glac_fld'
+#    freqlims = [0.2, 80] # [0.5, 80]
+#    datelims = np.array(['2017-07-05', '2017-07-09'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
+#    
+#    plttype = 'glac_spd'
+#    freqlims = [0.2, 80] # [0.5, 80]
+#    datelims = np.array(['2017-07-26', '2017-07-30'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)    
