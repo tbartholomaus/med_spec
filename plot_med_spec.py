@@ -50,7 +50,7 @@ def spec_plt(plttype, freqlims, datelims):
 
 # %% Getting back the objects:
 #stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
-stations = ['BBGU', 'BBGL']
+stations = ['7E_DL1']#, 'BBGL']
 #
 for station in stations:
 #    station = 'BBEU'
@@ -58,15 +58,16 @@ for station in stations:
     filename = 'output_results/mp' + station + '.pickle'
     with open(filename, 'rb') as f:  # Python 3: open(..., 'rb')
         t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
-    
+    t_start = t_dt64[0]
+    t_end = t_dt64[-1]
     #%%
     #datelims = np.array(['2017-10-02', '2017-10-07'], dtype='datetime64' )
     
     
-#    plttype = 'comp'
-#    freqlims = [0.1, 250] # [0.5, 80]
-#    datelims = np.array(['2017-06-27', '2017-09-27'], dtype='datetime64' )
-#    spec_plt(plttype, freqlims, datelims)
+    plttype = 'comp'
+    freqlims = [0.1, 100] # [0.5, 80]
+    datelims = np.array([t_start, t_end], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
 #    
 #    plttype = 'fld'
 #    freqlims = [0.5, 220]
@@ -83,10 +84,10 @@ for station in stations:
 #    datelims = np.array(['2017-07-22', '2017-07-31'], dtype='datetime64' )
 #    spec_plt(plttype, freqlims, datelims)
     
-    plttype = 'glac_comp'
-    freqlims = [0.2, 80] # [0.5, 80]
-    datelims = np.array(['2017-06-30', '2017-08-15'], dtype='datetime64' )
-    spec_plt(plttype, freqlims, datelims)
+#    plttype = 'glac_comp'
+#    freqlims = [0.2, 80] # [0.5, 80]
+#    datelims = np.array(['2017-06-30', '2017-08-15'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
 
 #    plttype = 'glac_fld'
 #    freqlims = [0.2, 80] # [0.5, 80]
