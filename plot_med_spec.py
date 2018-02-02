@@ -50,7 +50,7 @@ def spec_plt(plttype, freqlims, datelims):
 
 # %% Getting back the objects:
 #stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
-stations = ['7E_DL1']#, 'BBGL']
+stations = ['7E_DL1', '7E_S2', '7E_S4']#, 'BBGL']
 #
 for station in stations:
 #    station = 'BBEU'

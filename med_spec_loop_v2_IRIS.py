@@ -56,9 +56,9 @@ time.tzset()
 #sys.exit()
 #%%
 # This next block of code is the Lemon Creek experiment, run on ibest
-#network = '7E'#sys.argv[1]#'7E'
+#network = 'XF'#sys.argv[1]#'7E'
 network = sys.argv[1]#'7E'
-#station = 'S5'#TWLV'
+#station = 'BOOM'#TWLV'
 station = sys.argv[2]#'BBWL'#TWLV'
 chan = 'HHZ'#'EHZ'
 #data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
@@ -120,7 +120,7 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
-for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
+for i in range(2000, len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
 #    tr = st[0]
@@ -153,7 +153,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     # If the trimmed trace ends within 2*pp['coarse_duration'] of the end of  
     #   the data stream, then reload the next file.
     #   This keeps away tr_trim away from the end of the st_IC, which is tapered.
-    while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:        
+    while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:
 #        file_counter += 1
 #        print('--- Try to load in a new stream ---')
 #        print (t[i])
@@ -163,9 +163,19 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
         
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y'))
         
-        st = fdsn_client.get_waveforms(network=network, station=station, location='',
+        try:
+            st = fdsn_client.get_waveforms(network=network, station=station, location='',
                                channel=chan, starttime=t[i]-pp['coarse_duration'], endtime=t[i]+86400)
-
+        except Exception as e:
+            print(e)
+            break # If there is no data to load, break out of the while loop 
+                  #    and go to the next time step.
+        
+        if st[0].stats.endtime - pp['coarse_duration'] < tr_trim.stats.endtime:
+            break # If we were not able to load enough new data to get us
+                     #   through to the next iteration of the for loop (of t), 
+                     #   then force that next iteration.
+        
 #        # Read in another day volume as another trace, and merge it 
 #        #   into the stream "st".  When the st is instrument corrected, t[i]
 #        #   will have moved on, away from the beginning of the st.
