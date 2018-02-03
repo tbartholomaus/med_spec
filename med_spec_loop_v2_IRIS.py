@@ -60,7 +60,7 @@ time.tzset()
 network = sys.argv[1]#'7E'
 #station = 'BOOM'#TWLV'
 station = sys.argv[2]#'BBWL'#TWLV'
-chan = 'HHZ'#'EHZ'
+chan = sys.argv[3] #'EHZ'#'EHZ'
 #data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/DATA_RAW/'
 
@@ -109,8 +109,9 @@ st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt
 
 #%% Find the number of frequencies that the FFT will produce, and initialize the output array
 L = int(st[0].stats.sampling_rate) * pp['fine_duration']
-freq_nums = int(2**np.ceil(np.log2( L )) / 2) + 1#1025 #2049 # Number of frequencies output.  2049 for 200Hz data, 1025 for 100Hz data.
-Pdb_array = np.ones( (freq_nums, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
+#freq_nums = int(2**np.ceil(np.log2( L )) / 2) + 1#1025 #2049 # Number of frequencies output.  2049 for 200Hz data, 1025 for 100Hz data.
+#Pdb_array = np.ones( (freq_nums, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
+Pdb_array = np.ones( (2049, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
 
 #%% Start the big for loop that will go through each time and each miniseed 
 #       file and calculate the median powers.  These are each time of the
@@ -120,7 +121,7 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
-for i in range(2000, len(t)): # Loop over all the t's, however, the for loop will never complete
+for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 #%%    
 #    tr = st[0]
@@ -139,10 +140,16 @@ for i in range(2000, len(t)): # Loop over all the t's, however, the for loop wil
         
     tr_trim = st_IC[0].copy() # copy instrument corrected trace
     # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
-    tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
-    
+#    tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
+    tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - tr_trim.stats.delta)
+
 #    print()
 #    print(i)
+#    print(tr_trim.stats.npts)
+#    print(st)
+#    print(st_IC)
+#    print(tr_trim)
+
 #    print(t[i])
 
 #    # If you're at the end of the day volume, and the duration of tr_trim is not coarse_duration long:
@@ -183,10 +190,15 @@ for i in range(2000, len(t)): # Loop over all the t's, however, the for loop wil
 #        st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
 ##        print('st')
 ##        print(st[0])
-        st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
+#        st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
         st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
 #        print(st_IC)
 #        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
+        tr_trim = st_IC[0].copy() # copy instrument corrected trace
+        # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
+#        tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.0000001, nearest_sample=False)
+        tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - tr_trim.stats.delta)
+#        print(tr_trim.stats.npts)
 
 #    print(tr_trim)
 #    print(st)
@@ -199,14 +211,14 @@ for i in range(2000, len(t)): # Loop over all the t's, however, the for loop wil
 
 #        if flag_up:
 #            sys.exit()
-            
+#        print(tr_trim.stats.npts)    
         continue
     
 #    print('Calculating median spectra for ' + UTCDateTime.strftime(t[i], "%d/%m/%y %H:%M"))
     # pass the seismic data with coarse_duration to the helper function for
     #     calculation of the median spectra.
     freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
-    Pdb_array[:,i] = Pdb[:freq_nums] # Save the median spectra into an array
+    Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] # Save the median spectra into an array
     
 
 # At the end of the big for loop:
