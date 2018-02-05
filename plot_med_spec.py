@@ -39,7 +39,7 @@ def spec_plt(plttype, freqlims, datelims):
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
     fig.autofmt_xdate()
     
-    qm.set_clim(vmin=-200, vmax=-150)
+    qm.set_clim(vmin=-200, vmax=-130)
     cb = plt.colorbar(qm, ticks=np.arange(-200,-150, 10))
     cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
     plt.title(station)
@@ -50,7 +50,9 @@ def spec_plt(plttype, freqlims, datelims):
 
 # %% Getting back the objects:
 #stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
-stations = ['7E_DL1', '7E_S2', '7E_S4']#, 'BBGL']
+stations = ['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
+#['XF_BOOM', 'XF_DOST', 'XF_GRAP']#
+
 #
 for station in stations:
 #    station = 'BBEU'
@@ -60,6 +62,8 @@ for station in stations:
         t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
     t_start = t_dt64[0]
     t_end = t_dt64[-1]
+
+    freqs = np.linspace(0,100, 2049)
     #%%
     #datelims = np.array(['2017-10-02', '2017-10-07'], dtype='datetime64' )
     

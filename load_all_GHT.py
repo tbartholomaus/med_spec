@@ -47,6 +47,7 @@ class BBseis:
 
 #%%
 stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
+stations = ['XF_BOOM', 'XF_DOST', 'XF_GRAP']
 #stations = ['BBWU', 'BBEU', 'BBWL', 'BBEL', 'BBGL']
 BB = dict()
 
@@ -111,8 +112,9 @@ for station in stations:
     
     
     Pow = 10**(Pdb_array/10) # Power not in dB, but vel squared/Hz
-    ind = np.where(np.all([freqs>fGHT[0], freqs<fGHT[1]], axis=0))[0]
-    GHT_freqs = freqs[ind]
+    # Find those indices greater than fGHT[0] and less than fGHT[1]:
+    ind = np.where(np.all([freqs>fGHT[0], freqs<fGHT[1]], axis=0))[0] 
+    GHT_freqs = freqs[ind] # The list of frequencies over which power will be integrated.
 
     # Integrate the power per frequency over the range of frequencies identified by "ind"
     #   Integration is the sum of power (not in dB) over some frequency range (fGHT) times

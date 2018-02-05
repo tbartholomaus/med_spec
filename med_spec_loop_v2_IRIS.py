@@ -48,7 +48,8 @@ import get_med_spectra_v1
 #from clone_inv import clone_inv
 from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 # custom functions for working with obspy UTCDateTimes
 
-fdsn_client = Client('IRIS')
+fdsn_client = Client('ETH')
+#'IRIS')
 
 os.environ['TZ'] = 'UTC' # Set the system time to be UTC
 time.tzset()
@@ -56,11 +57,12 @@ time.tzset()
 #sys.exit()
 #%%
 # This next block of code is the Lemon Creek experiment, run on ibest
-#network = 'XF'#sys.argv[1]#'7E'
+#network = 'XH'#sys.argv[1]#'7E'
 network = sys.argv[1]#'7E'
-#station = 'BOOM'#TWLV'
+#station = 'FX01'#TWLV'
 station = sys.argv[2]#'BBWL'#TWLV'
-chan = sys.argv[3] #'EHZ'#'EHZ'
+#chan = sys.argv[3] #'EHZ'#'EHZ'
+chan = 'EHZ'#'EHZ'
 #data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/DATA_RAW/'
 
@@ -76,16 +78,18 @@ pp = {'coarse_duration': 3600.0,  # s
       'fine_duration'  : 20.0,   # s
       'fine_overlap'   : 0.5}   # Ratio of overlap
 
-
-
 pre_filt = (0.1, .2, 90, 100.)
+
+
+
+
 inv = fdsn_client.get_stations(network=network, station=station, channel=chan, 
                                location='', level="response")
 t_start = inv[0][0].start_date
 t_end = inv[0][0].end_date
 
+#sys.quit()
 
-    
 #%%
 
 
@@ -109,9 +113,9 @@ st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt
 
 #%% Find the number of frequencies that the FFT will produce, and initialize the output array
 L = int(st[0].stats.sampling_rate) * pp['fine_duration']
-#freq_nums = int(2**np.ceil(np.log2( L )) / 2) + 1#1025 #2049 # Number of frequencies output.  2049 for 200Hz data, 1025 for 100Hz data.
-#Pdb_array = np.ones( (freq_nums, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
-Pdb_array = np.ones( (2049, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
+freq_nums = int(2**np.ceil(np.log2( L )) / 2) + 1#1025 #2049 # Number of frequencies output.  2049 for 200Hz data, 1025 for 100Hz data.
+Pdb_array = np.ones( (freq_nums, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
+#Pdb_array = np.ones( (2049, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
 
 #%% Start the big for loop that will go through each time and each miniseed 
 #       file and calculate the median powers.  These are each time of the
