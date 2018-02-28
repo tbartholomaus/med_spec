@@ -39,8 +39,8 @@ def spec_plt(plttype, freqlims, datelims):
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
     fig.autofmt_xdate()
     
-    qm.set_clim(vmin=-200, vmax=-130)
-    cb = plt.colorbar(qm, ticks=np.arange(-200,-150, 10))
+    qm.set_clim(vmin=-180, vmax=-110)
+    cb = plt.colorbar(qm, ticks=np.arange(-180,-110, 10))  # typically -200 to -150
     cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
     plt.title(station)
     
@@ -50,7 +50,8 @@ def spec_plt(plttype, freqlims, datelims):
 
 # %% Getting back the objects:
 #stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
-stations = ['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
+stations = ['XH_FX11']#['XH_FX01', 'XH_FX03', 'XH_FX06', 'XH_FX10', 'XH_FX11', 'XH_FX12']
+#['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
 #['XF_BOOM', 'XF_DOST', 'XF_GRAP']#
 
 #
@@ -63,7 +64,7 @@ for station in stations:
     t_start = t_dt64[0]
     t_end = t_dt64[-1]
 
-    freqs = np.linspace(0,100, 2049)
+#    freqs = np.linspace(0,100, 2049)
     #%%
     #datelims = np.array(['2017-10-02', '2017-10-07'], dtype='datetime64' )
     
@@ -72,6 +73,12 @@ for station in stations:
     freqlims = [0.1, 100] # [0.5, 80]
     datelims = np.array([t_start, t_end], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
+    
+    plttype = 'ght'
+    freqlims = [.8, 15] # [0.5, 80]
+    datelims = np.array(['2011-07-03', '2011-08-15'], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
+#
 #    
 #    plttype = 'fld'
 #    freqlims = [0.5, 220]

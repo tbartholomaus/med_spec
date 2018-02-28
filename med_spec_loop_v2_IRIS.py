@@ -18,7 +18,7 @@ _v2 Nov 29, 2017: Modified to deconvolve the instrument response from the
     waveforms.
     
 Can read input station from commandline using:
-    >> nohup python -u ./med_spec_loop_v2.py XF BBWL > BBWL.log &    
+    >> nohup python -u ./med_spec_loop_v2_IRIS.py XF BBWL > BBWL.log &    
 
 """
 
