@@ -18,7 +18,7 @@ _v2 Nov 29, 2017: Modified to deconvolve the instrument response from the
     waveforms.
     
 Can read input station from commandline using:
-    >> nohup python -u ./med_spec_loop_v2_IRIS.py XF BBWL > BBWL.log &    
+    >> nohup python -u ./med_spec_loop_v2.py BBWL > BBWL.log &    
 
 """
 
@@ -32,7 +32,6 @@ from matplotlib import dates as mdates
 import obspy
 from obspy.core import read
 from obspy import UTCDateTime
-from obspy.clients.fdsn import Client
 #from obspy import signal
 
 import datetime as dt
@@ -40,16 +39,14 @@ import pickle
 
 import glob
 import os, time
+import fnmatch
 import sys
 #import imp
 #imp.reload(get_med_spectra)
 
 import get_med_spectra_v1
-#from clone_inv import clone_inv
+from clone_inv import clone_inv
 from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 # custom functions for working with obspy UTCDateTimes
-
-fdsn_client = Client('ETH')
-#'IRIS')
 
 os.environ['TZ'] = 'UTC' # Set the system time to be UTC
 time.tzset()
@@ -57,19 +54,22 @@ time.tzset()
 #sys.exit()
 #%%
 # This next block of code is the Lemon Creek experiment, run on ibest
-#network = 'XH'#sys.argv[1]#'7E'
-network = sys.argv[1]#'7E'
-#station = 'FX01'#TWLV'
-station = sys.argv[2]#'BBWL'#TWLV'
-#chan = sys.argv[3] #'EHZ'#'EHZ'
-chan = 'EHZ'#'EHZ'
+network = 'LM'
+station = sys.argv[1]#'BBWL'#TWLV'
 #data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/LEMON/'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/DATA_RAW/'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/DATA_RAW/'
 
-#t_start = UTCDateTime("2010-05-14T00:00:00.000")
-#t_end = UTCDateTime("2010-05-23T00:00:00.000")
+## This next block of code is for the Moscow Mtn test run on my laptop
+#network = 'XX'
+#network = 'LM'
+##station = 'BBGL'
+##data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/GB/'
+#station = 'BBEL'#TWLV'
+#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/Moscow_Mtn/NM_together/'
+##data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/wf_data/testing/'
 
-#resp_dir = '../RESP/'
+
+resp_dir = '../RESP/'
 #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/day_vols/data_temp/LEMON/on_ice'
 
 # A set of parameters that define how the script will be run
@@ -78,48 +78,98 @@ pp = {'coarse_duration': 3600.0,  # s
       'fine_duration'  : 20.0,   # s
       'fine_overlap'   : 0.5}   # Ratio of overlap
 
-pre_filt = (0.1, .2, 90, 100.)
+#data_dir = '/Volumes/disk_staff/timb/Seis_data/day_vols/TAKU/day_volumes/' + station + '/'
+#data_dir = '../mseed_files/'
+
+# file_names unless we read the individual 10 min geobit files below:
+file_names = glob.glob(data_dir + station + '/*HZ*')
+
+file_names.sort()
+if station == 'BBGL' and len(file_names)>5:
+    file_names = file_names[3:] # For BBGL  "2" when it's day files, 11 when its 10 min files
+elif station == 'BBGU':
+    file_names = file_names[1:] # For BBGU
+elif station == 'BBWU':
+    file_names = file_names[1:] # For BBWU
+elif station == 'BBEL':
+    file_names = file_names[2:] # For BBEL
+elif station == 'BBWL':
+    file_names = file_names[1:] # For BBWL
+file_counter = 0
+
+# %% LOAD IN THE INSTRUMENT CORRECTIONS TO CREATE INV OBJECTS
+
+if station[:3] == 'BBG':
+    pre_filt = (0.1, .4, 80, 85.)
+    resp_file_gb = resp_dir + "RESP_C100_SRi32_200sps.rsp"
+
+    inv = obspy.read_inventory(resp_file_gb)
+
+    inst_sens = inv[0][0][0].response.instrument_sensitivity.value
+    # factor change is sqrt( 10**(dB/10) )
+    # factor_change is a number greater than 1 because the GB sensor has a spectral
+    #   power greater than the NM sensor.
+    factor_change = 3.0
+    inv[0][0][0].response.instrument_sensitivity.value = inst_sens*factor_change
+    inv[0][0][0].response.response_stages[5].stage_gain = factor_change
+
+#    #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'
+#    #For working with all the Geobit data
+#    if network == 'LM':
+#        file_names = []
+#        for root, dirnames, fnames in os.walk('/mnt/gfs/tbartholomaus/Seis_data/RAW/LEMON/SV02/msd_10min/'+station):
+#            for fname_cnt in fnmatch.filter(fnames, '*.HHZ.mseed'):
+#                file_names.append(os.path.join(root, fname_cnt))
+#    if station =='BBGL':
+#        file_names = file_names[11:]
+
+elif station[:3] == 'BBW' or station[:3] == 'BBE' or station == 'UI05':
+    pre_filt = (0.01, .02, 210, 225.)
+    resp_file_nm = resp_dir + "XX.UI02.resp_171112/XX.UI02.HHZ.resp"
+    inv = obspy.read_inventory(resp_file_nm)
 
 
+inv[0][0][0].start_date = UTCDateTime("2017-6-29") # All stations were installed on 6/29, after 8 local
+# add another inventory object with the same response, but with the correct station names
+#    sta_chan_id = gb[0].get_id()
+#    inv_gb = clone_inv(inv_gb, sta_chan_id[:2], sta_chan_id[3:7])
+inv = clone_inv(inv, network, station)
 
-
-inv = fdsn_client.get_stations(network=network, station=station, channel=chan, 
-                               location='', level="response")
-t_start = inv[0][0].start_date
-t_end = inv[0][0].end_date
-
-#sys.quit()
-
+    
 #%%
 
+# Read in and find the time of the last data record of the last miniseed file
+st = read(file_names[-1])
+last_time = st[-1].stats.endtime
+
+#day_num = 247
+#
+#day_vol = './' + station + '.**..*HZ.2015.' + str(day_num)
+print('Loading file ' + file_names[0])
+# Read in and remove instrument response from first file
+st = read(file_names[0])
+st.merge(fill_value='interpolate')
+st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+
+#st1 = read('./' + station + '.**..*HZ.2015.248')
 
 # create an np.array of times at which to calculate the median power.
 #    The actual, calculated median powers will be calculated for the coarse_duration
 #    beginning at this time.
-t = np.arange( t_start, t_end, pp['coarse_duration'] * pp['coarse_overlap'])#, dtype='datetime64[D]')
+t = np.arange( UTCfloor(st[0].stats.starttime), UTCceil(last_time), 
+              pp['coarse_duration'] * pp['coarse_overlap'])#, dtype='datetime64[D]')
 #t = t[:-2]
 t_dt64 = UTC2dt64(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
 
 Fs_old = 0 # initialize the sampling rate with zero, to ensure proper running in the first iteration
 
-
-
-print('Loading time: ' + t[0].strftime('%d %b %Y'))
-# Read in and remove instrument response from first day
-st = fdsn_client.get_waveforms(network=network, station=station, location='',
-                               channel=chan, starttime=t_start, endtime=t_start+86400)
-st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
-
-
 #%% Find the number of frequencies that the FFT will produce, and initialize the output array
 L = int(st[0].stats.sampling_rate) * pp['fine_duration']
 freq_nums = int(2**np.ceil(np.log2( L )) / 2) + 1#1025 #2049 # Number of frequencies output.  2049 for 200Hz data, 1025 for 100Hz data.
 Pdb_array = np.ones( (freq_nums, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
-#Pdb_array = np.ones( (2049, len(t)) ) * -500.0 # initialize the final array of median powers with -500 db/Hz
 
 #%% Start the big for loop that will go through each time and each miniseed 
-#       file and calculate the median powers.  These are each time of the
-#       spectrogram, each x-axis.
+#       file and calculate the median powers.
 run_start_time = dt.datetime.now()
 print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
@@ -144,16 +194,10 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
         
     tr_trim = st_IC[0].copy() # copy instrument corrected trace
     # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
-#    tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
-    tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - tr_trim.stats.delta)
-
+    tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.00001, nearest_sample=False)
+    
 #    print()
 #    print(i)
-#    print(tr_trim.stats.npts)
-#    print(st)
-#    print(st_IC)
-#    print(tr_trim)
-
 #    print(t[i])
 
 #    # If you're at the end of the day volume, and the duration of tr_trim is not coarse_duration long:
@@ -164,45 +208,26 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     # If the trimmed trace ends within 2*pp['coarse_duration'] of the end of  
     #   the data stream, then reload the next file.
     #   This keeps away tr_trim away from the end of the st_IC, which is tapered.
-    while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:
-#        file_counter += 1
+    while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:        
+        file_counter += 1
 #        print('--- Try to load in a new stream ---')
 #        print (t[i])
         
-        if t[i]+86400 >= t_end:
+        if file_counter >= len(file_names):
             break # break out of the for loop when there are no more files to load.
         
-        print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y'))
-        
-        try:
-            st = fdsn_client.get_waveforms(network=network, station=station, location='',
-                               channel=chan, starttime=t[i]-pp['coarse_duration'], endtime=t[i]+86400)
-        except Exception as e:
-            print(e)
-            break # If there is no data to load, break out of the while loop 
-                  #    and go to the next time step.
-        
-        if st[0].stats.endtime - pp['coarse_duration'] < tr_trim.stats.endtime:
-            break # If we were not able to load enough new data to get us
-                     #   through to the next iteration of the for loop (of t), 
-                     #   then force that next iteration.
-        
-#        # Read in another day volume as another trace, and merge it 
-#        #   into the stream "st".  When the st is instrument corrected, t[i]
-#        #   will have moved on, away from the beginning of the st.
-#        st += read(file_names[file_counter])
-#        st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
-##        print('st')
-##        print(st[0])
-#        st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
+        print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading file: ' + file_names[file_counter])
+        # Read in another day volume as another trace, and merge it 
+        #   into the stream "st".  When the st is instrument corrected, t[i]
+        #   will have moved on, away from the beginning of the st.
+        st += read(file_names[file_counter])
+        st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
+#        print('st')
+#        print(st[0])
+        st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
         st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
 #        print(st_IC)
 #        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
-        tr_trim = st_IC[0].copy() # copy instrument corrected trace
-        # the minus small number and False nearest_sample make the tr include the first data point, but stop just shy of the last data point
-#        tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - 0.0000001, nearest_sample=False)
-        tr_trim.trim(t[i], t[i] + pp['coarse_duration'] - tr_trim.stats.delta)
-#        print(tr_trim.stats.npts)
 
 #    print(tr_trim)
 #    print(st)
@@ -215,14 +240,14 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 
 #        if flag_up:
 #            sys.exit()
-#        print(tr_trim.stats.npts)    
+            
         continue
     
 #    print('Calculating median spectra for ' + UTCDateTime.strftime(t[i], "%d/%m/%y %H:%M"))
     # pass the seismic data with coarse_duration to the helper function for
     #     calculation of the median spectra.
     freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
-    Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] # Save the median spectra into an array
+    Pdb_array[:,i] = Pdb[:freq_nums] # Save the median spectra into an array
     
 
 # At the end of the big for loop:
@@ -234,6 +259,6 @@ print('===========================================' + '\n\n')
 # %% Pickle the output of the big runs
 
 # Saving the objects:
-with open('mp' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station], f)
+with open('mp' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, data_dir, station], f)
 
