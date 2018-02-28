@@ -21,9 +21,9 @@ def spec_plt(plttype, freqlims, datelims):
     
 #    plt.imshow(np.log10(Pxx_vals[0:-2,]), extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
     fig, ax = plt.subplots()#figsize=(8, 4))
-    qm = ax.pcolormesh(t_dt64, freqs, Pdb_array_mask, cmap='YlOrRd')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
+    qm = ax.pcolormesh(t_dt64, freqs[1:], Pdb_array_mask[1:,:], cmap='YlOrRd')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
     ax.set_yscale('log')
-    ax.set_ylim()
+#    ax.set_ylim()
     ax.set_ylim(freqlims)
     ax.set_ylabel('Frequency (Hz)')
     
@@ -53,6 +53,7 @@ def spec_plt(plttype, freqlims, datelims):
 stations = ['XH_FX11']#['XH_FX01', 'XH_FX03', 'XH_FX06', 'XH_FX10', 'XH_FX11', 'XH_FX12']
 #['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
 #['XF_BOOM', 'XF_DOST', 'XF_GRAP']#
+stations = ['ZQ_ETIP']
 
 #
 for station in stations:
@@ -74,10 +75,12 @@ for station in stations:
     datelims = np.array([t_start, t_end], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
     
-    plttype = 'ght'
-    freqlims = [.8, 15] # [0.5, 80]
-    datelims = np.array(['2011-07-03', '2011-08-15'], dtype='datetime64' )
-    spec_plt(plttype, freqlims, datelims)
+#    plttype = 'ght'
+#    freqlims = [.8, 15] # [0.5, 80]
+#    datelims = np.array(['2011-07-03', '2011-08-15'], dtype='datetime64' )
+#    spec_plt(plttype, freqlims, datelims)
+    
+    
 #
 #    
 #    plttype = 'fld'
