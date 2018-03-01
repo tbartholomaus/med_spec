@@ -48,28 +48,30 @@ import get_med_spectra_v1
 #from clone_inv import clone_inv
 from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 # custom functions for working with obspy UTCDateTimes
 
-fdsn_client = Client('IRIS')#'ETH')#'IRIS')
 
 os.environ['TZ'] = 'UTC' # Set the system time to be UTC
 time.tzset()
 
 #sys.exit()
 #%%
+data_source = 'local'#'ETH')#'IRIS') # Is the miniseed data on a local computer, or on a web server?
+
+
 # This next block of code is the Lemon Creek experiment, run on ibest
-network = 'ZQ'#'XH'#sys.argv[1]#'7E'
-#network = sys.argv[1]#'7E'
-station = 'ETIP'#'FX01'#TWLV'
-#station = sys.argv[2]#'BBWL'#TWLV'
+#network = 'ZQ'#'XH'#sys.argv[1]#'7E'
+network = sys.argv[1]#'7E'
+#station = 'ETIP'#'FX01'#TWLV'
+station = sys.argv[2]#'BBWL'#TWLV'
 #chan = sys.argv[3] #'EHZ'#'EHZ'
 chan = 'HHZ'#'EHZ'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/TAKU/SV03/'
-#data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/mseed_files/recent/'
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/mseed_files/recent/'
+#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/TAKU/SV03/'
 
 #t_start = UTCDateTime("2010-05-14T00:00:00.000")
 #t_end = UTCDateTime("2010-05-23T00:00:00.000")
 
 resp_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/response/'
-resp_dir = '../'
+#resp_dir = '../'
 #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/day_vols/data_temp/LEMON/on_ice'
 
 # A set of parameters that define how the script will be run
@@ -85,26 +87,34 @@ pre_filt = (0.01, .02, 90, 100.)
 # %%
 #print('Loading time: ' + t[0].strftime('%d %b %Y'))
 print('Loading first data')
+if data_source=='local':
+    # READ IN FROM LOCAL FILES
+    xml = resp_dir + 'TAKU_station.xml'
+    inv = obspy.read_inventory(xml)
+    inv = inv.select(channel=chan, station=station) # subset the inventory to just that which is necessary for script
+    
+    file_names = glob.glob(data_dir + station + '/*HZ*')
+    file_names.sort()
+    file_counter = 0
+    
+    st = read(file_names[0])
+    st.merge(method=0)
 
-# READ IN FROM LOCAL FILES
-xml = resp_dir + 'TAKU_station.xml'
-inv = obspy.read_inventory(xml)
+    t_start = inv[0][0].start_date
+    t_end = inv[0][0].end_date
 
-file_names = glob.glob(data_dir + station + '/*HZ*')
-file_names.sort()
-file_counter = 0
+if data_source!='local':
+    fdsn_client = Client(data_source)#'ETH')#'IRIS')
 
-st = read(file_names[0])
-st.merge(method=0)
-
-# READ IN FROM FDSN CLIENT
-#inv = fdsn_client.get_stations(network=network, station=station, channel=chan, 
-#                               location='', level="response")
-## Read in and remove instrument response from first day
-#st = fdsn_client.get_waveforms(network=network, station=station, location='',
-#                               channel=chan, starttime=t_start, endtime=t_start+86400)
-
-
+    # READ IN FROM FDSN CLIENT
+    inv = fdsn_client.get_stations(network=network, station=station, channel=chan, 
+                                   location='', level="response")
+    t_start = inv[0][0].start_date
+    t_end = inv[0][0].end_date
+    
+    # Read in and remove instrument response from first day
+    st = fdsn_client.get_waveforms(network=network, station=station, location='',
+                                   channel=chan, starttime=t_start, endtime=t_start+86400)
 
 
 
@@ -114,8 +124,7 @@ st.merge(method=0)
 #%%
 st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
 
-t_start = inv[0][0].start_date
-t_end = inv[0][0].end_date
+
 
 # create an np.array of times at which to calculate the median power.
 #    The actual, calculated median powers will be calculated for the coarse_duration
@@ -143,9 +152,9 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
-for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
+for i in np.arange(950, 1200):#range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
-#%%    
+##%%    
 #    tr = st[0]
 
 #    IC_counter += 1
@@ -193,19 +202,21 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y'))
         
         try:
-#            # Read in from FDSN client
-#            st = fdsn_client.get_waveforms(network=network, station=station, location='',
-#                               channel=chan, starttime=t[i]-pp['coarse_duration'], endtime=t[i]+86400)
+            if data_source=='local':
+                # Read in local file
+                        # Read in another day volume as another trace, and merge it 
+                        #   into the stream "st".  When the st is instrument corrected, t[i]
+                        #   will have moved on, away from the beginning of the st.
+                st += read(file_names[file_counter])
+                st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
+
+                st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
+
+            if data_source!='local':
+                # Read in from FDSN client
+                st = fdsn_client.get_waveforms(network=network, station=station, location='',
+                                   channel=chan, starttime=t[i]-pp['coarse_duration'], endtime=t[i]+86400)
             
-            # Read in local file
-                    # Read in another day volume as another trace, and merge it 
-                    #   into the stream "st".  When the st is instrument corrected, t[i]
-                    #   will have moved on, away from the beginning of the st.
-            st += read(file_names[file_counter])
-            st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
-    #        print('st')
-    #        print(st[0])
-            st.trim(starttime=t[i] - pp['coarse_duration'], endtime=st[0].stats.endtime ) # trim off the part of the merged stream that's already been processed.
             
         except Exception as e:
             print(e)
