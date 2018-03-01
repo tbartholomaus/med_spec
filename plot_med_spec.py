@@ -53,7 +53,7 @@ def spec_plt(plttype, freqlims, datelims):
 stations = ['XH_FX11']#['XH_FX01', 'XH_FX03', 'XH_FX06', 'XH_FX10', 'XH_FX11', 'XH_FX12']
 #['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
 #['XF_BOOM', 'XF_DOST', 'XF_GRAP']#
-stations = ['ZQ_ETIP']
+stations = ['ZQ_TWLV', 'ZQ_RTBD', 'ZQ_ETIP', 'ZQ_GAGA', 'ZQ_GUGU']
 
 #
 for station in stations:
@@ -73,7 +73,7 @@ for station in stations:
     plttype = 'comp'
     freqlims = [0.1, 100] # [0.5, 80]
     datelims = np.array([t_start, t_end], dtype='datetime64' )
-    datelims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
+#    datelims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
     
 #    plttype = 'ght'
