@@ -73,7 +73,7 @@ for station in stations:
     plttype = 'comp'
     freqlims = [0.1, 100] # [0.5, 80]
     datelims = np.array([t_start, t_end], dtype='datetime64' )
-#    datelims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
+    datelims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
     
 #    plttype = 'ght'

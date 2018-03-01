@@ -84,14 +84,25 @@ def med_spec(tr, pp, Fs_old):
         Fs_old = Fs
     
     DATA = data[idx] # % turn the coarse-window data into many fine-window snippets of length L
-#    print('DATA complete')      
-    DATA = signal.detrend(DATA, axis=0, type='linear')  
+#    print('DATA complete')  
+    
+    # These next three lines are all unnecessary, because they're taken care of in the call to signal.periodogram
+#    DATA = signal.detrend(DATA, axis=0, type='linear')  
 #    DATA = detrend(DATA) #; % demeans AND detrends DATA with this one command
-    DATA = WIND * DATA #; % Apply window to DATA, prior to FFT, to reduce sidelobe leakage.
+#    DATA = WIND * DATA #; % Apply window to DATA, prior to FFT, to reduce sidelobe leakage.
 
 #    print('DATA ready for periodogram')
-    freqs, Pxx = signal.periodogram(DATA, fs=Fs, window=None, nfft=NFFT, detrend='linear',
-                return_onesided=True, scaling='density', axis=1)
+    freqs, Pxx = signal.periodogram(DATA, fs=Fs, window='hanning', nfft=NFFT,
+                                    detrend='linear', return_onesided=True,
+                                    scaling='density', axis=1)
+    # With simple sin wave, TCB confirms Mar 1, 2018 
+    #    that np.sum(DATA**2)/L = np.sum(Pxx) * delta_freq, for unwindowed data
+    # Tim further confirms that when the data is windowed in the signal.periodogram
+    #    call, that the powers are re-scaled so that Parseval's theorem holds.
+    #    but that if the data is hanning windowed first, then sig.per has no 
+    #    idea (of course), and the powers are reduced by a factor of 2.67
+    #    On Mar 1, 2018, Tim changes the script so that windowing is done in
+    #    the call to sig.per, and not externally.
     Pdb = 10 * np.log10(np.median(Pxx,0))
 
 #%%
