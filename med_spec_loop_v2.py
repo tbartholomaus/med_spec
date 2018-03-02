@@ -65,7 +65,7 @@ station = sys.argv[2]#'BBWL'#TWLV'
 #chan = sys.argv[3] #'EHZ'#'EHZ'
 chan = 'HHZ'#'EHZ'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/mseed_files/recent/'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/TAKU/SV03/'
+data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/TAKU/CWU201516/'#/SV03/'
 
 #t_start = UTCDateTime("2010-05-14T00:00:00.000")
 #t_end = UTCDateTime("2010-05-23T00:00:00.000")
@@ -100,7 +100,7 @@ if data_source=='local':
     st = read(file_names[0])
     st.merge(method=0)
 
-    t_start = inv[0][0].start_date
+    t_start = inv[0][0].start_date # Start and end the timeseries according to the dates during which the station was running.
     t_end = inv[0][0].end_date
 
 if data_source!='local':
