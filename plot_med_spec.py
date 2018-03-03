@@ -11,15 +11,19 @@ import pickle
 import matplotlib.dates as mdates
 
 #%% Plot the output of the big runs as median spectrograms
-
+# First, define a function call that will do the plotting.
 def spec_plt(plttype, freqlims, datelims):
     mask_val1 = Pdb_array<=-300
     mask_val2 = np.isinf(Pdb_array)
-    Pdb_array_mask = np.ma.masked_where(np.any([mask_val1, mask_val2], axis=0), Pdb_array)
     
-#    t_datenum = UTC2dn(t) # Convert a np.array of obspy UTCDateTimes into datenums for the purpose of plotting
+    # Create another mask array that will rely on unusually low power in the microseism band
+    mask_val3 = mask_val1.copy()
+    freq_ind = np.where(freqs>.2)[0][0] # find the index of the first frequency greater than 0.2 Hz
+    mask_ind3 = np.where(Pdb_array[freq_ind,:]<-170)[0] # If the power within the dominant microseism band (~0.2 Hz) is less than -170 dB, then be suspicious of the data.
+    mask_val3[:, mask_ind3] = True
     
-#    plt.imshow(np.log10(Pxx_vals[0:-2,]), extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
+    Pdb_array_mask = np.ma.masked_where(np.any([mask_val1, mask_val2, mask_val3], axis=0), Pdb_array)
+    
     fig, ax = plt.subplots()#figsize=(8, 4))
     qm = ax.pcolormesh(t_dt64, freqs[1:], Pdb_array_mask[1:,:], cmap='YlOrRd')#, extent = [0, len(file_names), freqs[1], freqs[freq_nums-1]])
     ax.set_yscale('log')
@@ -29,8 +33,6 @@ def spec_plt(plttype, freqlims, datelims):
     
     # Set the date limits for the plot, to make each station's plots consistent
     ax.set_xlim(datelims)
-    #ax.set_xlim(mdates.date2num([dt.date(2017, 7, 3), dt.date(2017, 7, 8)]))
-    #ax.set_xlim(mdates.date2num([dt.datetime(2017, 10, 4, 23,0,0), dt.datetime(2017, 10, 7, 1, 0, 0)]))
     
     # Format the xaxis of the pcolormesh to be dates
     #ax.xaxis.set_major_locator(mdates.AutoDateLocator())
@@ -39,13 +41,13 @@ def spec_plt(plttype, freqlims, datelims):
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
     fig.autofmt_xdate()
     
-    qm.set_clim(vmin=-180, vmax=-110)
-    cb = plt.colorbar(qm, ticks=np.arange(-180,-110, 10))  # typically -200 to -150
+    qm.set_clim(vmin=-200, vmax=-120)
+    cb = plt.colorbar(qm, ticks=np.arange(-200,-120, 10))  # typically -200 to -150
     cb.set_label('Power (dB, rel. 1 (m/s)^2/Hz)')
     plt.title(station)
     
     # #%%
-#    plt.savefig('output_figs/Spec_' + plttype + '_' + station + '', dpi=150) # _ght, _fld
+    plt.savefig('output_figs/Spec_' + plttype + '_' + station + '', dpi=150) # _ght, _fld
     plt.show()
 
 # %% Getting back the objects:
@@ -53,7 +55,8 @@ def spec_plt(plttype, freqlims, datelims):
 stations = ['XH_FX11']#['XH_FX01', 'XH_FX03', 'XH_FX06', 'XH_FX10', 'XH_FX11', 'XH_FX12']
 #['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
 #['XF_BOOM', 'XF_DOST', 'XF_GRAP']#
-stations = ['ZQ_TWLV', 'ZQ_RTBD', 'ZQ_ETIP', 'ZQ_GAGA', 'ZQ_GUGU']
+stations = ['ZQ_ETIP', 'ZQ_TWLV', 'ZQ_RTBD', 'ZQ_TAKN', 'ZQ_TAKE', 'ZQ_TAKW', 
+            'ZQ_TAKC', 'ZQ_HITW', 'ZQ_GAGA', 'ZQ_GUGU']
 
 #
 for station in stations:
@@ -71,15 +74,21 @@ for station in stations:
     
     
     plttype = 'comp'
-    freqlims = [0.1, 100] # [0.5, 80]
+    freqlims = [0.1, 90] # [0.5, 80]
     datelims = np.array([t_start, t_end], dtype='datetime64' )
 #    datelims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
     spec_plt(plttype, freqlims, datelims)
     
-#    plttype = 'ght'
-#    freqlims = [.8, 15] # [0.5, 80]
-#    datelims = np.array(['2011-07-03', '2011-08-15'], dtype='datetime64' )
-#    spec_plt(plttype, freqlims, datelims)
+    plttype = 'early'
+    freqlims = [0.1, 90] # [0.5, 80]
+    datelims = np.array(['2016-03-23', '2016-05-01'], dtype='datetime64' )
+#    datelims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
+    
+    plttype = 'ght'
+    freqlims = [.8, 15] # [0.5, 80]
+    datelims = np.array([t_start, t_end], dtype='datetime64' )
+    spec_plt(plttype, freqlims, datelims)
     
     
 #
