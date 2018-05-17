@@ -64,11 +64,16 @@ def spec_plt(plt_type, freq_lims, date_lims):
 # %% Read in and plot each station.  In this case, output data is saved
 #       according to the network code name, and the station name:
 #stations = ['BBWU', 'BBEU', 'BBGU', 'BBWL', 'BBEL', 'BBGL']
+stations = ['XX_BBGL']#['XH_FX01', 'XH_FX03', 'XH_FX06', 'XH_FX10', 'XH_FX11', 'XH_FX12']
 stations = ['XH_FX11']#['XH_FX01', 'XH_FX03', 'XH_FX06', 'XH_FX10', 'XH_FX11', 'XH_FX12']
 #['7E_DL1', '7E_S1', '7E_S2', '7E_S4', '7E_S5', '7E_S6']#, 'BBGL']
 #['XF_BOOM', 'XF_DOST', 'XF_GRAP']#
-stations = ['ZQ_ETIP', 'ZQ_TWLV', 'ZQ_RTBD', 'ZQ_TAKN', 'ZQ_TAKE', 'ZQ_TAKW', 
-            'ZQ_TAKC', 'ZQ_HITW', 'ZQ_GAGA', 'ZQ_GUGU']
+stations = [#'ZQ_ETIP', 'ZQ_TWLV', 'ZQ_RTBD', 'ZQ_TAKN', 'ZQ_TAKE', 
+            'ZQ_TAKW', 
+            'ZQ_TAKC', 'ZQ_HITW', 'ZQ_GAGA', 'ZQ_GUGU', 'ZQ_GIW1', 'ZQ_GIW2']
+
+stations = ['XX_BBGL', 'XX_BBGU']
+stations = ['ZQ_GAGA', 'ZQ_GUGU']
 
 #
 for station in stations:
@@ -94,16 +99,16 @@ for station in stations:
 #    date_lims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
     spec_plt(plt_type, freq_lims, date_lims)
     
-    plt_type = 'early'
-    freq_lims = [0.1, 90] # [0.5, 80]
-    date_lims = np.array(['2016-03-23', '2016-05-01'], dtype='datetime64' )
-#    date_lims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
-    spec_plt(plt_type, freq_lims, date_lims)
-    
-    plt_type = 'ght'
-    freq_lims = [.8, 15] # [0.5, 80]
-    date_lims = np.array([t_start, t_end], dtype='datetime64' )
-    spec_plt(plt_type, freq_lims, date_lims)
+#    plt_type = 'early'
+#    freq_lims = [0.1, 90] # [0.5, 80]
+#    date_lims = np.array(['2016-03-23', '2016-04-15'], dtype='datetime64' )
+##    date_lims = np.array(['2016-04-08', '2016-04-13'], dtype='datetime64' )
+#    spec_plt(plt_type, freq_lims, date_lims)
+#    
+#    plt_type = 'ght'
+#    freq_lims = [.8, 15] # [0.5, 80]
+#    date_lims = np.array([t_start, t_end], dtype='datetime64' )
+#    spec_plt(plt_type, freq_lims, date_lims)
     
     
 #

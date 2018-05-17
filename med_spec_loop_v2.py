@@ -48,6 +48,8 @@ import get_med_spectra_v1
 #from clone_inv import clone_inv
 from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 # custom functions for working with obspy UTCDateTimes
 
+from clone_inv import clone_inv
+
 
 os.environ['TZ'] = 'UTC' # Set the system time to be UTC
 time.tzset()
@@ -59,9 +61,9 @@ data_source = 'local'#'ETH')#'IRIS') # Is the miniseed data on a local computer,
 
 # This next block of code is the Lemon Creek experiment, run on ibest
 #network = 'ZQ'#'XH'#sys.argv[1]#'7E'
-network = sys.argv[1]#'7E'
+#network = sys.argv[1]#'7E'
 #station = 'ETIP'#'FX01'#TWLV'
-station = sys.argv[2]#'BBWL'#TWLV'
+#station = sys.argv[2]#'BBWL'#TWLV'
 #chan = sys.argv[3] #'EHZ'#'EHZ'
 chan = 'HHZ'#'EHZ'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/mseed_files/recent/'
@@ -84,15 +86,25 @@ pre_filt = (0.01, .02, 90, 100.)
 
 
 
+network = 'XX'
+station = 'BBGU'
+resp_dir = "/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Instruments/geobit/180305_Resp/V1/RESP_C100SRi32V1_200sps_MIN.rsp"
+data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Instruments/geobit/1705_Geobit_testing/from_thumb/msd_files/'#CWU201516/'#/SV03/'
+pre_filt = (0.1, .2, 90, 100.)
+
+
 # %%
 #print('Loading time: ' + t[0].strftime('%d %b %Y'))
 print('Loading first data')
 if data_source=='local':
     # READ IN FROM LOCAL FILES
-    xml = resp_dir + 'TAKU_station.xml'
-    inv = obspy.read_inventory(xml)
+#    inv_file = resp_dir + 'TAKU_station.xml'
+    inv_file = resp_dir # For mseed files
+    inv = obspy.read_inventory(inv_file)
+    inv = clone_inv(inv, network, station)
+
     inv = inv.select(channel=chan, station=station) # subset the inventory to just that which is necessary for script
-    
+
     file_names = glob.glob(data_dir + station + '/*HZ*')
     file_names.sort()
     file_counter = 0
@@ -100,8 +112,10 @@ if data_source=='local':
     st = read(file_names[0])
     st.merge(method=0)
 
-    t_start = inv[0][0].start_date # Start and end the timeseries according to the dates during which the station was running.
-    t_end = inv[0][0].end_date
+#    t_start = inv[0][0].start_date # Start and end the timeseries according to the dates during which the station was running.
+#    t_end = inv[0][0].end_date
+    t_start = UTCDateTime("2017-05-22") # for mseed files       Start and end the timeseries according to the dates during which the station was running.
+    t_end = UTCDateTime("2017-05-25") # for mseed files       
 
 if data_source!='local':
     fdsn_client = Client(data_source)#'ETH')#'IRIS')
@@ -152,6 +166,8 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
 print('===========================================' + '\n\n')
 
+flag_up = False
+
 #for i in np.arange(950, 1200):#range(len(t)): # Loop over all the t's, however, the for loop will never complete
 for i in range(len(t)): # Loop over all the t's, however, the for loop will never complete
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
@@ -177,12 +193,12 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 
 #    print()
 #    print(i)
+#    print(t[i])    
 #    print(tr_trim.stats.npts)
 #    print(st)
 #    print(st_IC)
 #    print(tr_trim)
 
-#    print(t[i])
 
 #    # If you're at the end of the day volume, and the duration of tr_trim is not coarse_duration long:
 #    while t[i] + pp['coarse_duration'] > tr_trim.stats.endtime + 0.01:
@@ -197,10 +213,10 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #        print('--- Try to load in a new stream ---')
 #        print (t[i])
         
-        if t[i]+86400 >= t_end:
-            break # break out of the for loop when there are no more files to load.
+#        if t[i]+86400 >= t_end:
+#            break # break out of the for loop when there are no more files to load.
         
-        print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y'))
+        print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y, %H:%M'))
         
         try:
             if data_source=='local':
@@ -223,11 +239,12 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
             print(e)
             break # If there is no data to load, break out of the while loop 
                   #    and go to the next time step.
-        
-        if st[0].stats.endtime - pp['coarse_duration'] < tr_trim.stats.endtime:
-            break # If we were not able to load enough new data to get us
-                     #   through to the next iteration of the for loop (of t), 
-                     #   then force that next iteration.
+
+        # This next break loop short-circuits the while loop
+#        if st[0].stats.endtime - pp['coarse_duration'] < tr_trim.stats.endtime:
+#            break # If we were not able to load enough new data to get us
+#                     #   through to the next iteration of the for loop (of t), 
+#                     #   then force that next iteration.
         
 
                      
@@ -246,11 +263,15 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     # If tr_trim does not contain a full coarse_duration of samples, then skip
     #     the present coarse_duration and go onto the next iteration of the for
     #     loop.
+    if i>46:
+        flag_up = True
+        
     if tr_trim.stats.npts < pp['coarse_duration'] * int(tr_trim.stats.sampling_rate) * 1:
         print('Incomplete coarse_duration at ' + UTCDateTime.strftime(t[i], "%d %b %y %H:%M") + ': Skipping')
 
 #        if flag_up:
 #            sys.exit()
+            
 #        print(tr_trim.stats.npts)    
         continue
     
@@ -270,6 +291,6 @@ print('===========================================' + '\n\n')
 # %% Pickle the output of the big runs
 
 # Saving the objects:
-with open('mp_crick' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+with open('mp' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station], f)
 
