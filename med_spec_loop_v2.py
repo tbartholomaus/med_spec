@@ -39,7 +39,7 @@ import datetime as dt
 import pickle
 
 import glob
-import os, time
+import os, time, fnmatch
 import sys
 #import imp
 #imp.reload(get_med_spectra)
@@ -61,19 +61,19 @@ data_source = 'local'#'ETH')#'IRIS') # Is the miniseed data on a local computer,
 
 # This next block of code is the Lemon Creek experiment, run on ibest
 #network = 'ZQ'#'XH'#sys.argv[1]#'7E'
-#network = sys.argv[1]#'7E'
+network = sys.argv[1]#'7E'
 #station = 'ETIP'#'FX01'#TWLV'
-#station = sys.argv[2]#'BBWL'#TWLV'
+station = sys.argv[2]#'BBWL'#TWLV'
 #chan = sys.argv[3] #'EHZ'#'EHZ'
 chan = 'HHZ'#'EHZ'
 #data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/mseed_files/recent/'
-data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/TAKU/SV03/'#CWU201516/'#/SV03/'
+#data_dir = '/mnt/lfs2/tbartholomaus/Seis_data/day_vols/TAKU/SV03/'#CWU201516/'#/SV03/'
 
 #t_start = UTCDateTime("2010-05-14T00:00:00.000")
 #t_end = UTCDateTime("2010-05-23T00:00:00.000")
 
 #resp_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Taku GHT/response/'
-resp_dir = '../'
+#resp_dir = '../'
 #data_dir = '/mnt/gfs/tbartholomaus/Seis_data/day_vols/data_temp/LEMON/on_ice'
 
 # A set of parameters that define how the script will be run
@@ -82,15 +82,19 @@ pp = {'coarse_duration': 3600.0,  # s
       'fine_duration'  : 20.0,   # s
       'fine_overlap'   : 0.5}   # Ratio of overlap
 
-pre_filt = (0.01, .02, 90, 100.)
+#pre_filt = (0.01, .02, 90, 100.)
 
 
 
-network = 'XX'
-station = 'BBGU'
-resp_dir = "/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Instruments/geobit/180305_Resp/V1/RESP_C100SRi32V1_200sps_MIN.rsp"
+#network = 'XX'
+#station = 'BBGL'
+resp_file = "/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Instruments/geobit/180305_Resp/V1/RESP_C100SRi32V1_200sps_MIN.rsp"
 data_dir = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/Instruments/geobit/1705_Geobit_testing/from_thumb/msd_files/'#CWU201516/'#/SV03/'
 pre_filt = (0.1, .2, 90, 100.)
+
+
+resp_file = '~/Lemon/seis_an/RESP/XX.UI02.resp_171112/XX.UI02.HHZ.resp'
+data_dir = '~/Seis_data/day_vols/LEMON/'
 
 
 # %%
@@ -99,14 +103,25 @@ print('Loading first data')
 if data_source=='local':
     # READ IN FROM LOCAL FILES
 #    inv_file = resp_dir + 'TAKU_station.xml'
-    inv_file = resp_dir # For mseed files
+    inv_file = resp_file # For mseed files
     inv = obspy.read_inventory(inv_file)
     inv = clone_inv(inv, network, station)
 
     inv = inv.select(channel=chan, station=station) # subset the inventory to just that which is necessary for script
 
-    file_names = glob.glob(data_dir + station + '/*HZ*')
+
+
+
+# THIS OPTION COMBS THE SUBDIRECTORIES LOOKING FOR GOOD FILES
+    file_names = []
+    for root, dirs, files in os.walk(data_dir + station):  
+        for afilename in files:
+            if fnmatch.fnmatch(afilename, '*HZ*'):
+                file_names.append(root + '/' + afilename)
+#    file_names = glob.glob(data_dir + station + '/*HZ*')
     file_names.sort()
+    while fnmatch.fnmatch(file_names[0], '*_000101*'): # Hallmark of a Geobit before it gets timing
+        file_names.pop(0)
     file_counter = 0
     
     st = read(file_names[0])
@@ -116,6 +131,8 @@ if data_source=='local':
 #    t_end = inv[0][0].end_date
     t_start = UTCDateTime("2017-05-22") # for mseed files       Start and end the timeseries according to the dates during which the station was running.
     t_end = UTCDateTime("2017-05-25") # for mseed files       
+    inv[0][0].start_date = t_start # Start and end the timeseries according to the dates during which the station was running.
+    inv[0][0].end_date = t_end
 
 if data_source!='local':
     fdsn_client = Client(data_source)#'ETH')#'IRIS')
@@ -137,6 +154,7 @@ if data_source!='local':
 
 #%%
 st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+
 
 
 
@@ -224,6 +242,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
                         # Read in another day volume as another trace, and merge it 
                         #   into the stream "st".  When the st is instrument corrected, t[i]
                         #   will have moved on, away from the beginning of the st.
+                print('    ' + file_names[file_counter][-40:])
                 st += read(file_names[file_counter])
                 st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
 
@@ -292,5 +311,5 @@ print('===========================================' + '\n\n')
 
 # Saving the objects:
 with open('mp' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station], f)
+    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station, run_start_time], f)
 

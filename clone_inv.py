@@ -30,7 +30,7 @@ def clone_inv(inv, net_name, sta_name):
         longitude= inv[0][0].longitude,
         elevation= inv[0][0].elevation,
         creation_date=obspy.UTCDateTime(2016, 1, 2),
-        site=Site(name="First station"))
+        site=Site(name="station with cloned inv"))
     
     cha = Channel(
         # This is the channel code according to the SEED standard.

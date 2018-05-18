@@ -81,7 +81,8 @@ for station in stations:
     #filename = 'mpBBEL_test2.pickle'
     filename = 'output_results/mp' + station + '.pickle'
     with open(filename, 'rb') as f:  # Python 3: open(..., 'rb')
-        t, t_dt64, freqs, Pdb_array, pp, data_dir, station = pickle.load(f, encoding='latin1')
+        t, t_dt64, freqs, Pdb_array, pp, network, station, run_start_time = pickle.load(f, encoding='latin1')
+#        t, t_dt64, freqs, Pdb_array, pp, data_dir, station 
     t_start = t_dt64[0]
     t_end = t_dt64[-1]
 

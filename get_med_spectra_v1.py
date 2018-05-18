@@ -78,8 +78,8 @@ def med_spec(tr, pp, Fs_old):
 
 #        idx = bsxfun(@plus, id1, start_offset);  % creates a matrix of indices, which will be used to turn the coarse-window data into many snippets of fine-window data.
 #%         cos_taper = tukeywin(L, 0.2);
-        wind = np.hanning(L);
-        WIND = np.tile(wind, (len(start_offset), 1) )
+#        wind = np.hanning(L);
+#        WIND = np.tile(wind, (len(start_offset), 1) )
     
         Fs_old = Fs
     
