@@ -69,6 +69,7 @@ channel = config['DEFAULT']['channel']
 
 data_dir = config['DEFAULT']['data_dir']
 resp_file = config['DEFAULT']['resp_file']
+out_dir = config['DEFAULT']['out_dir']
 
 
 # A set of parameters that define how the script will be run
@@ -324,6 +325,6 @@ print('===========================================' + '\n\n')
 # %% Pickle the output of the big runs
 
 # Saving the objects:
-with open('mp' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+with open(out_dir + 'mp' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station], f)
 
