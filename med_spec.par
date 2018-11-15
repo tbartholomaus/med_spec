@@ -3,6 +3,7 @@
 [DEFAULT]
 # data_source should be 'local' or 'ETH' or 'IRIS'
 data_source: local
+# if data_source is not local, then the data_dir and resp_file parameters below are irrelevant.  However, they should be retained in the par file none-the-less.
 
 network: LM
 station: BBEL
@@ -14,6 +15,9 @@ data_dir = /Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/
 
 # include full path to resp file
 resp_file = /Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/RESP/XX.UI02.resp_171112/XX.UI02.HHZ.resp
+
+# full path to the directory in which the output pickle file should be saved
+out_dir = /Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/med_spec/
 
 # durations in seconds, and overlap in ratios
 pp_coarse_duration = 3600.0

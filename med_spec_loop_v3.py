@@ -16,9 +16,10 @@ in an array, and finally plotted.
 
 _v2 Nov 29, 2017: Modified to deconvolve the instrument response from the
     waveforms.
+_v3 Nov 15, 2018: Modified to use a parameter file for all parameters.
     
 Can read input station from commandline using:
-    >> nohup python -u ./med_spec_loop_v2.py med_spec.par XF BBWL > BBWL.log &    
+    >> nohup python -u ./med_spec_loop_v3.py med_spec.par XF BBWL > BBWL.log &    
 
 """
 
