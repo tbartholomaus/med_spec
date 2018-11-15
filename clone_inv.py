@@ -3,6 +3,12 @@
 """
 Created on Sat Nov  4 11:06:15 2017
 
+Short script to copy over the response information stored in an obspy "inventory"
+    from one station-channel to a second station-channel.
+
+Caution: There's no checking built into this script to ensure that the attached
+    response information is actually appropriate for this station-channel.
+
 @author: timb
 """
 
@@ -30,7 +36,7 @@ def clone_inv(inv, net_name, sta_name):
         longitude= inv[0][0].longitude,
         elevation= inv[0][0].elevation,
         creation_date=obspy.UTCDateTime(2016, 1, 2),
-        site=Site(name="First station"))
+        site=Site(name="station with cloned inv"))
     
     cha = Channel(
         # This is the channel code according to the SEED standard.
