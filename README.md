@@ -17,7 +17,7 @@ python ./med_spec_loop_v3.py med_spec.par
 
 A more feature-rich execution of this code could be
 ```
-nohup python -u ./med_spec_loop_v2.py med_spec.par LM BBWL > BBWL.log &  
+nohup python -u ./med_spec_loop_v3.py med_spec.par LM BBWL > BBWL.log &  
 ```
 which is expected to run on a server with nohup preventing killing the process if the server is disconnected from.  The `-u` flag forces the text output of the python script to stdout, so that it can then be redirected to a log file (`> BBWL.log`).  Here network and station codes from the par file are also overridden by `LM` and `BBWL`.  If present, these network, station, and channel codes (in that order) take precedence over whatever is in the par file.
 
