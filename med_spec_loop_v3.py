@@ -1,3 +1,4 @@
+#!/opt/anaconda/envs/seisenv/bin python
 # -*- coding: utf-8 -*-
 """
 Created on Fri Feb 19 12:06:45 2016
@@ -127,6 +128,10 @@ with open(sys.argv[1], 'r') as fin:
 print('End display of parameter file: ' + sys.argv[1])
 print('-------------------------------------------' + '\n\n')
 
+if len(sys.argv) > 2:
+    print('-------------------------------------------')
+    print('Parameter file overwritten with: ' + str(sys.argv[2:]) )
+    print('-------------------------------------------' + '\n\n')
 
 #print('Loading time: ' + t[0].strftime('%d %b %Y'))
 print('Loading first data')
@@ -207,7 +212,8 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 ##%%    
 #    tr = st[0]
-
+    print('>> Starting new loop: ' +str(i) )
+    time_temp = dt.datetime.now()
 #    IC_counter += 1
 #    
 #    if IC_counter == 3: # Note that this threshold IC_counter value is ad-hoc and may not work if different amounts of IC tapering are done, or if the pp['coarse_duration'] is different than 3600
@@ -258,6 +264,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
                         # Read in another day volume as another trace, and merge it 
                         #   into the stream "st".  When the st is instrument corrected, t[i]
                         #   will have moved on, away from the beginning of the st.
+                print('About to read in new datafile: ' + str(dt.datetime.now() - time_temp) )             
                 st += read(file_names[file_counter])
                 st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
 
@@ -281,8 +288,10 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #                     #   then force that next iteration.
         
 
-                     
+        print('about to remove response: ' + str(dt.datetime.now() - time_temp) )            
         st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
+        print('response now removed: ' + str(dt.datetime.now() - time_temp) )             
+
 #        print(st_IC)
 #        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
         tr_trim = st_IC[0].copy() # copy instrument corrected trace
@@ -312,6 +321,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #    print('Calculating median spectra for ' + UTCDateTime.strftime(t[i], "%d/%m/%y %H:%M"))
     # pass the seismic data with coarse_duration to the helper function for
     #     calculation of the median spectra.
+    print('Sending for get_med_spectra_v1: ' + str(dt.datetime.now() - time_temp) )             
     freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
     Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] # Save the median spectra into an array
     
