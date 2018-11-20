@@ -212,8 +212,8 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #     the loop ends when file_counter == len(file_names).  Perhaps a while loop would be more elegant 
 ##%%    
 #    tr = st[0]
-    print('>> Starting new loop: ' +str(i) )
-    time_temp = dt.datetime.now()
+#    print('>> Starting new loop: ' +str(i) )
+#    time_temp = dt.datetime.now()
 #    IC_counter += 1
 #    
 #    if IC_counter == 3: # Note that this threshold IC_counter value is ad-hoc and may not work if different amounts of IC tapering are done, or if the pp['coarse_duration'] is different than 3600
@@ -264,7 +264,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
                         # Read in another day volume as another trace, and merge it 
                         #   into the stream "st".  When the st is instrument corrected, t[i]
                         #   will have moved on, away from the beginning of the st.
-                print('About to read in new datafile: ' + str(dt.datetime.now() - time_temp) )             
+#                print('About to read in new datafile: ' + str(dt.datetime.now() - time_temp) )             
                 st += read(file_names[file_counter])
                 st.merge(fill_value='interpolate')#method=0) # Merge the new and old day volumes
 
@@ -288,9 +288,9 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #                     #   then force that next iteration.
         
 
-        print('about to remove response: ' + str(dt.datetime.now() - time_temp) )            
+#        print('about to remove response: ' + str(dt.datetime.now() - time_temp) )            
         st_IC = st.copy().remove_response(inventory=inv, output="VEL", pre_filt=pre_filt)
-        print('response now removed: ' + str(dt.datetime.now() - time_temp) )             
+#        print('response now removed: ' + str(dt.datetime.now() - time_temp) )             
 
 #        print(st_IC)
 #        IC_counter = 0 # Reset the IC_counter so that new st_IC will be created soon
@@ -321,7 +321,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
 #    print('Calculating median spectra for ' + UTCDateTime.strftime(t[i], "%d/%m/%y %H:%M"))
     # pass the seismic data with coarse_duration to the helper function for
     #     calculation of the median spectra.
-    print('Sending for get_med_spectra_v1: ' + str(dt.datetime.now() - time_temp) )             
+#    print('Sending for get_med_spectra_v1: ' + str(dt.datetime.now() - time_temp) )             
     freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
     Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] # Save the median spectra into an array
     
@@ -336,5 +336,5 @@ print('===========================================' + '\n\n')
 
 # Saving the objects:
 with open(out_dir + 'mp' + network + '_' + station + '.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station], f)
+    pickle.dump([t, t_dt64, freqs, Pdb_array, pp, network, station, run_start_time], f)
 
