@@ -248,7 +248,7 @@ for i in range(len(t)): # Loop over all the t's, however, the for loop will neve
     # If the trimmed trace ends within 2*pp['coarse_duration'] of the end of  
     #   the data stream, then reload the next file.
     #   This keeps away tr_trim away from the end of the st_IC, which is tapered.
-    while tr_trim.stats.endtime > st_IC[0].stats.endtime - pp['coarse_duration']:
+    while tr_trim.stats.endtime > st_IC[-1].stats.endtime - pp['coarse_duration']:
         file_counter += 1
 #        print('--- Try to load in a new stream ---')
 #        print (t[i])
