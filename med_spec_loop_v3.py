@@ -58,7 +58,8 @@ os.environ['TZ'] = 'UTC' # Set the system time to be UTC
 time.tzset()
 
 #sys.exit()
-#%%
+
+#%% READ FROM THE PAR FILE
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
@@ -110,11 +111,14 @@ elif len(sys.argv) == 5: # i.e., two overrides of the par file
 #pre_filt = (0.1, .2, 90, 100.)
 
 
-# %%
+#%% PRINT OUTPUTS ABOUT THE RUN, FOR THE PURPOSE OF RECORDING IN THE LOG FILE
 run_start_time = dt.datetime.now()
 print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
-print('===========================================' + '\n\n')
+print('===========================================' + '\n')
+
+print('Run executed from "' + os.getcwd() + '/"')
+print('Run arguments consist of: ' + str(sys.argv))
 
 
 print('\n\n' + '-------------------------------------------')
@@ -125,6 +129,7 @@ print('-------------------------------------------')
 with open(sys.argv[1], 'r') as fin:
 #with open(par_file[0], 'r') as fin:
     print(fin.read())
+print('-------------------------------------------')
 print('End display of parameter file: ' + sys.argv[1])
 print('-------------------------------------------' + '\n\n')
 
@@ -147,9 +152,7 @@ if data_source=='local':
     file_names = glob.glob(data_dir + station + '/*' + channel[-2:] +'*')
     file_names.sort()
     file_counter = 0
-    
     st = read(file_names[0])
-    st.merge(method=0)
 
 #    t_start = inv[0][0].start_date # Start and end the timeseries according to the dates during which the station was running.
 #    t_end = inv[0][0].end_date
@@ -158,6 +161,14 @@ if data_source=='local':
     inv[0][0][0].start_date = t_start
     inv[0][0][0].end_date = t_end
     
+    while(st[0].stats.starttime < inv[0][0][0].start_date): # If the first stream is before the t_start, then skip and go to the next file
+        if file_counter == 0:
+            print('File(s) found that pre-date t_start from the par file.')
+        print(' Skipping file: ' + file_names[file_counter])
+        file_counter += 1 
+        st = read(file_names[file_counter])
+    st.merge(method=0)
+    print('\n')
 
 if data_source!='local':
     fdsn_client = Client(data_source)#'ETH')#'IRIS')
@@ -171,8 +182,6 @@ if data_source!='local':
     # Read in and remove instrument response from first day
     st = fdsn_client.get_waveforms(network=network, station=station, location='',
                                    channel=channel, starttime=t_start, endtime=t_start+86400)
-
-
 
 
 #sys.quit()
