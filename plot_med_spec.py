@@ -58,7 +58,7 @@ def spec_plt(plt_type, freq_lims, date_lims):
     plt.title(station)
     
     # #%%
-    plt.savefig('output_figs/Spec_' + plt_type + '_' + station + '', dpi=150) # _ght, _fld
+    plt.savefig(path_to_pickle_files + 'output_figs/Spec_' + plt_type + '_' + station + '', dpi=150) # _ght, _fld
     plt.show()
 
 # %% Read in and plot each station.  In this case, output data is saved
@@ -75,11 +75,15 @@ stations = [#'ZQ_ETIP', 'ZQ_TWLV', 'ZQ_RTBD', 'ZQ_TAKN', 'ZQ_TAKE',
 stations = ['XX_BBGL', 'XX_BBGU']
 stations = ['ZQ_GAGA', 'ZQ_GUGU']
 
+stations = ['XX_SE47', 'XX_SE50', 'XX_SE53', 'XX_SE57', 'XX_SE60', 'XX_SE63', 'XX_SELC', 'XX_SEHC']
+
 #
 for station in stations:
 #    station = 'BBEU'
     #filename = 'mpBBEL_test2.pickle'
-    filename = 'output_results/mp' + station + '.pickle'
+#    path_to_pickle_files = '/Volumes/labdata/proj/MoVE/med_spec_output/'
+    path_to_pickle_files = '/Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/MoVE_Gulley_Greenland/Seis_analysis/med_spec/med_spec_output/'
+    filename = path_to_pickle_files + 'output_results/mp' + station + '.pickle'
     with open(filename, 'rb') as f:  # Python 3: open(..., 'rb')
         t, t_dt64, freqs, Pdb_array, pp, network, station, run_start_time = pickle.load(f, encoding='latin1')
 #        t, t_dt64, freqs, Pdb_array, pp, data_dir, station 
