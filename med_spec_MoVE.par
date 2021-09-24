@@ -1,0 +1,35 @@
+# Parameter file for use with med_spec calculation
+
+[DEFAULT]
+# data_source should be 'local' or 'ETH' or 'IRIS'
+data_source: local
+# if data_source is not local, then the data_dir and resp_file parameters below are irrelevant.  However, they should be retained in the par file none-the-less.
+
+network: LM
+station: BBEL
+channel: HHZ
+
+# include full paths to data, with final forward slash: /
+# script assumes miniseed files are organized in data_dir + station/
+data_dir = /Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/DATA/
+
+# include full path to resp file
+resp_file = /Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/RESP/XX.UI02.resp_171112/XX.UI02.HHZ.resp
+
+# full path to the directory in which the output pickle file should be saved
+out_dir = /Users/timb/Documents/syncs/OneDrive - University of Idaho/RESEARCHs/LemonCrk_GHT/Seis_analysis/med_spec/
+
+# durations in seconds, and overlap in ratios
+pp_coarse_duration = 3600.0
+pp_coarse_overlap = 0.5
+pp_fine_duration = 20.0
+pp_fine_overlap = 0.5
+
+pre_filt0: 0.01
+pre_filt1: .02
+pre_filt2: 90
+pre_filt3: 100.
+
+# times in form yyyy-mm-dd
+t_start = 2017-06-29
+t_end = 2017-07-10
