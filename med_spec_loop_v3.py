@@ -183,12 +183,12 @@ if data_source!='local':
         t_start = inv[0][0].start_date
     else:
         t_start = UTCDateTime(config['DEFAULT']['t_start']) # use start time specified in parser file
-        inv[0][0][0].start_date = t_start
+    inv[0][0][0].start_date = t_start
     if not t_end:
         t_end =  inv[0][0].end_date
     else:
         t_end = UTCDateTime(config['DEFAULT']['t_end']) # use end time specified in parser file 
-        inv[0][0][0].end_date = t_end
+    inv[0][0][0].end_date = t_end
         
      
     # Read in and remove instrument response from first day
