@@ -158,8 +158,8 @@ if data_source=='local':
 #    t_end = inv[0][0].end_date
     t_start = UTCDateTime(config['DEFAULT']['t_start']) # for mseed files       Start and end the timeseries according to the dates during which the station was running.
     t_end = UTCDateTime(config['DEFAULT']['t_end']) # for mseed files       
-    inv[0][0][0].start_date = t_start
-    inv[0][0][0].end_date = t_end
+#    inv[0][0][0].start_date = t_start
+#    inv[0][0][0].end_date = t_end
     
     while(st[0].stats.starttime < inv[0][0][0].start_date): # If the first stream is before the t_start, then skip and go to the next file
         if file_counter == 0:
