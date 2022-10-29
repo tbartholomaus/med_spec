@@ -158,8 +158,8 @@ if data_source=='local':
 #    t_end = inv[0][0].end_date
     t_start = UTCDateTime(config['DEFAULT']['t_start']) # for mseed files       Start and end the timeseries according to the dates during which the station was running.
     t_end = UTCDateTime(config['DEFAULT']['t_end']) # for mseed files       
-    inv[0][0][0].start_date = t_start
-    inv[0][0][0].end_date = t_end
+#    inv[0][0][0].start_date = t_start
+#    inv[0][0][0].end_date = t_end
     
     while(st[0].stats.starttime < inv[0][0][0].start_date): # If the first stream is before the t_start, then skip and go to the next file
         if file_counter == 0:
@@ -176,12 +176,27 @@ if data_source!='local':
     # READ IN FROM FDSN CLIENT
     inv = fdsn_client.get_stations(network=network, station=station, channel=channel, 
                                    location='', level="response")
-    t_start = inv[0][0].start_date
-    t_end = inv[0][0].end_date
-    
+  
+    # start/end dates: read the dates specified in the parser file, even when getting data from external source. 
+    # if the start/end dates are left empty in the parser file, read the full extent of available data at the external source. 
+    if not t_start:
+        t_start = inv[0][0].start_date
+    else:
+        t_start = UTCDateTime(config['DEFAULT']['t_start']) # use start time specified in parser file
+    inv[0][0][0].start_date = t_start
+    if not t_end:
+        t_end =  inv[0][0].end_date
+    else:
+        t_end = UTCDateTime(config['DEFAULT']['t_end']) # use end time specified in parser file 
+    inv[0][0][0].end_date = t_end
+        
+     
     # Read in and remove instrument response from first day
     st = fdsn_client.get_waveforms(network=network, station=station, location='',
                                    channel=channel, starttime=t_start, endtime=t_start+86400)
+    
+    # initiate token file counter
+    file_counter = 0 
 
 
 #sys.quit()
