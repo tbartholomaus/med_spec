@@ -1,5 +1,8 @@
 
 .DS_Store
+obsolete/*
+output_*/
+__pycache__/
 obsolete/get_med_spectra_v0.py
 obsolete/med_spec_loop_v1.py
 obsolete/zmed_spec_loop_v1.py
