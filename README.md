@@ -1,7 +1,11 @@
 # med_spec
 Calculates the median spectrograms of waveforms from a seismic deployment.  Method follows that described in *Bartholomaus et al., 2015, GRL*.
 
-This repository consists of several key functions and a couple of helpers to calculate the median power at a range of frequencies for seismic timeseries at single stations.  These median spectra are less sensitive to brief, high power transient events such as earthquakes and icequakes, and thus are appropriate for use in noisy seismic environments, like glaciers.
+Please cite this software as:
+Bartholomaus, T., & Terleth, Y. (2023). med_spec: Calculation of median seismic spectrograms, for purposes of quantifying tremor (Version 1.0.0) [Computer software]. https://doi.org/10.5281/zenodo.8102681
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8102681.svg)](https://doi.org/10.5281/zenodo.8102681)
+
+This repository consists of several key functions and a couple of helper functions to calculate the median power at a range of frequencies for seismic timeseries at single stations.  These median spectra are less sensitive to brief, high power transient events such as earthquakes and icequakes, and thus are appropriate for use in noisy seismic environments, like glaciers.
 
 The core of these scripts begins with **med_spec_loop.py**. This file loops over a long duration seismic deployment and calls **get_med_spectra_v1.py** every time there's a snippet of data to calculate the median spectra of.  The output of get_med_spectra_v1.py, which contains the ingredients of a median spectrogram, includes time, frequency and power.  As of March 1, 2018, get_med_spectra_v1.py satisfies Parseval's theorem.  Previous versions of data run with this function reported power that was too low due to windowing that reduced amplitudes by an unaccounted-for scalar.
     The file med_spec_loop_v3.py corrects the data using the instrument response and requires use of an appropriate RESP or station xml file.
