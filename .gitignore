@@ -1,6 +1,5 @@
 
 .DS_Store
-obsolete/*
 output_*/
 __pycache__/
 obsolete/get_med_spectra_v0.py
