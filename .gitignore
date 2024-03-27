@@ -1,8 +1,6 @@
 
 .DS_Store
-obsolete/get_med_spectra_v0.py
-obsolete/med_spec_loop_v1.py
-obsolete/zmed_spec_loop_v1.py
+obsolete/
 Spec_close_BBGL.png
 *.png
 z_output_no_IC/mpBBEL.pickle
