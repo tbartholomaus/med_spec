@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Bartholomaus"
+  given-names: "Timothy"
+  orcid: "https://orcid.org/0000-0002-1470-6720"
+- family-names: "Terleth"
+  given-names: "Yoram"
+  orcid: "https://orcid.org/0000-0002-6583-5258"
+title: "med_spec: Calculation of median seismic spectrograms, for purposes of quantifying tremor"
+version: 1.0.0
+doi: 10.5281/zenodo.8102681
+date-released: 2023-06-30
+url: "https://github.com/tbartholomaus/med_spec"
