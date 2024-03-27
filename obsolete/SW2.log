@@ -1,0 +1,76 @@
+
+
+===========================================
+SW2 run started: Sep 19, 2022, 18:35
+===========================================
+
+Run executed from "/data/stor/basic_data/seismic_data/git_repos/med_spec/"
+Run arguments consist of: ['./med_spec_loop_v3.py', '/data/stor/proj/Turner/med_spec_output/run2020_2022/med_spec_TURNER_20s.par', 'YG', 'SW2']
+
+
+-------------------------------------------
+Start display of parameter file: /data/stor/proj/Turner/med_spec_output/run2020_2022/med_spec_TURNER_20s.par
+Parameter file last saved: Mon Sep 19 18:30:06 2022
+-------------------------------------------
+# Parameter file for use with med_spec calculation
+
+[DEFAULT]
+# data_source should be 'local' or 'ETH' or 'IRIS'
+data_source: local
+# if data_source is not local, then the data_dir and resp_file parameters below are irrelevant.  However, they should be retained in the par file none-the-less.
+
+network: YG
+station: SW2
+channel: HHZ
+
+# include full paths to data, with final forward slash: /
+# script assumes miniseed files are organized in data_dir + station/
+data_dir = /data/stor/basic_data/seismic_data/day_vols/TURNER/
+
+# include full path to resp file
+#resp_file = /data/stor/basic_data/seismic_data/day_vols/TURNER/resp/Turner_station_210924.xml
+#resp_file = /data/stor/basic_data/seismic_data/day_vols/TURNER/resp/Turner_station_211014.xml
+
+# the latest response file, OK for use with geobit:
+resp_file = /data/stor/basic_data/seismic_data/day_vols/TURNER/resp/Turner_station_211201.xml
+
+
+# full path to the directory in which the output pickle file should be saved
+out_dir = /data/stor/proj/Turner/med_spec_output/run2020_2022/output_files/
+
+# durations in seconds, and overlap in ratios
+pp_coarse_duration = 3600.0
+pp_coarse_overlap = 0.5
+pp_fine_duration = 20.0
+pp_fine_overlap = 0.5
+
+pre_filt0: 0.02
+pre_filt1: .05
+pre_filt2: 110
+pre_filt3: 125.
+
+# times in form yyyy-mm-dd
+t_start = 2020-09-05
+t_end = 2022-08-15
+
+-------------------------------------------
+End display of parameter file: /data/stor/proj/Turner/med_spec_output/run2020_2022/med_spec_TURNER_20s.par
+-------------------------------------------
+
+
+-------------------------------------------
+Parameter file overwritten with: ['YG', 'SW2']
+-------------------------------------------
+
+
+Loading first data
+File(s) found that pre-date t_start from the par file.
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.242
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.243
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.244
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.245
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.246
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.247
+ Skipping file: /data/stor/basic_data/seismic_data/day_vols/TURNER/SW2/SW2.YG.00.HHZ.2020.248
+
+
