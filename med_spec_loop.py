@@ -13,8 +13,9 @@ _v2 Nov 29, 2017: Modified to deconvolve the instrument response from the
     waveforms.
 _v3 Nov 15, 2018: Modified to use a parameter file for all parameters.
 _v5 on October 28, 2022 (yoram terleth): Modified to accomodate long data gaps, bug fixes, clean up. 
-    
-Can run script from commandline  nd overide par file for network and station using:
+Mar 27, 2024 (TCB): Start parallelizing using parsl
+
+Can run script from commandline and overide par file for network and station using:
     >> nohup python -u ./med_spec_loop.py med_spec.par XF BBWL > BBWL.log &    
 """
 
@@ -44,10 +45,35 @@ import get_med_spectra_v1
 # custom functions for working with obspy UTCDateTimes
 from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 
 
+# ----------
+# Required packages for parsl
+import parsl
+from parsl import python_app
+from parsl.config import Config
+from parsl.executors import HighThroughputExecutor
+from parsl.providers import LocalProvider
+
+# Configure the parsl executor
+activate_env = 'workon scomp'
+htex_local = Config(
+    executors=[
+        HighThroughputExecutor(
+            max_workers=15,
+            provider=LocalProvider(
+                worker_init=activate_env
+            )
+        )
+    ],
+)
+parsl.clear()
+parsl.load(htex_local)
+#------------
+
+
+
 # Set the system time to be UTC
 os.environ['TZ'] = 'UTC'
 time.tzset()
-
 
 
 #%% READ PARAMETERS FROM THE PAR FILE
@@ -107,7 +133,7 @@ elif len(sys.argv) == 5:
 
 run_start_time = dt.datetime.now()
 print('\n\n' + '===========================================')
-print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time))
+print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time) + 'UTC')
 print('===========================================' + '\n')
 
 print('Run executed from "' + os.getcwd() + '/"')
@@ -116,7 +142,7 @@ print('Run arguments consist of: ' + str(sys.argv))
 print('\n\n' + '-------------------------------------------')
 print('Start display of parameter file: ' + sys.argv[1])
 par_time_sec = os.path.getmtime(sys.argv[1])
-print('Parameter file last saved: ' + time.ctime( par_time_sec ) )
+print('Parameter file last saved: ' + time.ctime( par_time_sec )  + 'UTC')
 
 print('-------------------------------------------')
 with open(sys.argv[1], 'r') as fin:
