@@ -145,6 +145,8 @@ print('\n\n' + '===========================================')
 print(station + ' run started: ' + '{:%b %d, %Y, %H:%M}'.format(run_start_time) + 'UTC')
 print('===========================================' + '\n')
 
+print('  --  PARSL  --  ')
+
 print('Run executed from "' + os.getcwd() + '/"')
 print('Run arguments consist of: ' + str(sys.argv))
 
