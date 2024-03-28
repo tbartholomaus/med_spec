@@ -283,7 +283,7 @@ for i in range(len(t)):
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y, %H:%M'))
         
         # Block progression of the code until all the parsl app_futures finish running
-        if file_counter % 3 == 0 # Run 3 days at a a time
+        if file_counter % 3 == 0: # Run 3 days at a a time
             done = [one_future.result() for one_future in all_futures]
         # print(done)
 
