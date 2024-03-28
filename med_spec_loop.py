@@ -280,6 +280,11 @@ for i in range(len(t)):
         # print where we are to output 
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y, %H:%M'))
         
+        # Block progression of the code until all the parsl app_futures finish running
+        if file_counter % 3 == 0 # Run 3 days at a a time
+            done = [one_future.result() for one_future in all_futures]
+        # print(done)
+
         try:
 
             # reading in from local files
@@ -362,7 +367,7 @@ for i in range(len(t)):
     # all_Pdb_futures.append(Pdb_future)
     # all_Fs_old_futures.append(Fs_old_future)
     all_futures.append(future_result)
-    print('  AppFuture launched: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()))
+    print('    AppFuture launched: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()))
 
 
     # Save the median spectra into array
