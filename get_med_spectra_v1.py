@@ -65,23 +65,17 @@ def med_spec(tr, pp, Fs_old):
 #    continue
 #end
     
-    if Fs != Fs_old: # % Only recalculate these metrics when necessary.  Most of the time they can stay the same.
-        print('>>> Recalulating idx and WIND <<<')        
-        L = int(Fs * pp['fine_duration']) # Length of fine_window data vector
-        NFFT = int(2**np.ceil(np.log2(L))) # Next power of 2 from length of fine data
-#        f = np.linspace(0, Fs/2, num=NFFT/2+1)
-    
-        id1 = np.arange(0, L) # [0:L-1]';
-        start_offset = np.arange(0, Fs*pp['coarse_duration']-L, L*(1-pp['fine_overlap']))
-        start_offset = start_offset.astype('int')        
-        idx = id1 + start_offset[:, None]
+    # if Fs != Fs_old: # % Only recalculate these metrics when necessary.  Most of the time they can stay the same.
+    print('>>> Recalulating idx and WIND <<<')        
+    L = int(Fs * pp['fine_duration']) # Length of fine_window data vector
+    NFFT = int(2**np.ceil(np.log2(L))) # Next power of 2 from length of fine data
 
-#        idx = bsxfun(@plus, id1, start_offset);  % creates a matrix of indices, which will be used to turn the coarse-window data into many snippets of fine-window data.
-#%         cos_taper = tukeywin(L, 0.2);
-#        wind = np.hanning(L);
-#        WIND = np.tile(wind, (len(start_offset), 1) )
-    
-        Fs_old = Fs
+    id1 = np.arange(0, L) # [0:L-1]';
+    start_offset = np.arange(0, Fs*pp['coarse_duration']-L, L*(1-pp['fine_overlap']))
+    start_offset = start_offset.astype('int')        
+    idx = id1 + start_offset[:, None]
+
+        # Fs_old = Fs
     
     DATA = data[idx] # % turn the coarse-window data into many fine-window snippets of length L
 #    print('DATA complete')  

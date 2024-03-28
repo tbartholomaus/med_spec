@@ -54,11 +54,11 @@ from parsl.executors import HighThroughputExecutor
 from parsl.providers import LocalProvider
 
 # Configure the parsl executor
-activate_env = 'workon scomp'
+activate_env = 'conda activate seisenv24a'
 htex_local = Config(
     executors=[
         HighThroughputExecutor(
-            max_workers=15,
+            max_workers=10,
             provider=LocalProvider(
                 worker_init=activate_env
             )
@@ -67,6 +67,12 @@ htex_local = Config(
 )
 parsl.clear()
 parsl.load(htex_local)
+
+@python_app
+def parsl_get_med_spec(tr_trim, pp, Fs_old):
+    freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
+    return freqs, Pdb, Fs_old
+
 #------------
 
 
@@ -242,8 +248,13 @@ Pdb_array = np.ones( (freq_nums, len(t)) ) * np.nan
 # intialize printing flag 
 print_out = True 
 
+# initialize list that will contain all the futures that get launched within the time for loop
+all_freqs_futures = []
+all_Pdb_futures = []
+all_Fs_old_futures = []
+
 #%% Start the big for loop that will go through each time and each miniseed file and calculate the median powers. These are each time of the spectrogram, each x-axis.
-print('\n\nStarting for loop...\n\n')
+print('\n\nStarting for loop over time...\n\n')
 
 for i in range(len(t)): 
 
@@ -340,13 +351,28 @@ for i in range(len(t)):
     ## COMPUTE MEDIAN SPECTRA
 
     # run function            
-    freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
+    # freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
+    freqs_future, Pdb_future, Fs_old_future = parsl_get_med_spec(tr_trim, pp, Fs_old)
+    all_freqs_futures.append(freqs_future)
+    all_Pdb_futures.append(Pdb_future)
+    all_Fs_old_futures.append(Fs_old_future)
 
     # Save the median spectra into array
-    Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] 
+    #   Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] 
     
     # end of the for loop 
 
+
+
+#%% PRINT END MESSAGE
+print('\n\n' + '===========================================')
+print(station + ' run complete: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()))
+print('Elapsed time: ' + str(dt.datetime.now() - run_start_time))
+print('===========================================' + '\n\n')
+
+
+
+Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] 
 
 
 #%% SAVE THE OUTPUT TO PICKLE FILE 
