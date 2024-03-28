@@ -295,9 +295,9 @@ for i in range(len(t)):
         
         # Block progression of the code until all the parsl app_futures finish running
         if file_counter % 3 == 2: # Run 3 days at a a time
-            print('Starting blocking at: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now())
+            print('Starting blocking at: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()) )
             done = [one_future.result() for one_future in all_futures]
-            print('Finished blocking at: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now())
+            print('Finished blocking at: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()) )
         # print(done)
 
         try:
