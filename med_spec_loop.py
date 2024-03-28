@@ -318,7 +318,8 @@ for i in range(len(t)):
 
     # Save the median spectra into array
     Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] 
-    
+    print('  Serial iteration done: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()))
+
     # end of the for loop 
 
 
