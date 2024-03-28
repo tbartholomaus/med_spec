@@ -58,7 +58,7 @@ activate_env = 'conda activate seisenv24a'
 htex_local = Config(
     executors=[
         HighThroughputExecutor(
-            max_workers=10,
+            max_workers=5,
             provider=LocalProvider(
                 worker_init=activate_env
             )
@@ -68,10 +68,13 @@ htex_local = Config(
 parsl.clear()
 parsl.load(htex_local)
 
-@python_app
-def parsl_get_med_spec(tr_trim, pp, Fs_old):
-    freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
-    return freqs, Pdb, Fs_old
+parsl_get_med_spec = python_app(get_med_spectra_v1.med_spec)
+
+
+# @python_app
+# def parsl_get_med_spec(tr_trim, pp, Fs_old):
+#     freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
+#     return freqs, Pdb, Fs_old
 
 #------------
 
@@ -249,9 +252,10 @@ Pdb_array = np.ones( (freq_nums, len(t)) ) * np.nan
 print_out = True 
 
 # initialize list that will contain all the futures that get launched within the time for loop
-all_freqs_futures = []
-all_Pdb_futures = []
-all_Fs_old_futures = []
+# all_freqs_futures = []
+# all_Pdb_futures = []
+# all_Fs_old_futures = []
+all_futures = []
 
 #%% Start the big for loop that will go through each time and each miniseed file and calculate the median powers. These are each time of the spectrogram, each x-axis.
 print('\n\nStarting for loop over time...\n\n')
@@ -352,16 +356,29 @@ for i in range(len(t)):
 
     # run function            
     # freqs, Pdb, Fs_old = get_med_spectra_v1.med_spec(tr_trim, pp, Fs_old)
-    freqs_future, Pdb_future, Fs_old_future = parsl_get_med_spec(tr_trim, pp, Fs_old)
-    all_freqs_futures.append(freqs_future)
-    all_Pdb_futures.append(Pdb_future)
-    all_Fs_old_futures.append(Fs_old_future)
+    future_result = parsl_get_med_spec(tr_trim, pp, Fs_old)
+    # freqs_future, Pdb_future, Fs_old_future
+    # all_freqs_futures.append(freqs_future)
+    # all_Pdb_futures.append(Pdb_future)
+    # all_Fs_old_futures.append(Fs_old_future)
+    all_futures.append(future_result)
+    print('  AppFuture launched: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now()))
+
 
     # Save the median spectra into array
     #   Pdb_array[:len(freqs),i] = Pdb[:len(freqs)] 
     
     # end of the for loop 
 
+
+all_freqs = []
+Pdb_list = []
+all_Fs_old_futures = []
+for future in all_futures:
+    (freqs, Pdb, Fs_old) = future.result()
+    Pdb_list.append(Pdb)
+
+Pdb_array = np.array(Pdb_list)
 
 
 #%% PRINT END MESSAGE
