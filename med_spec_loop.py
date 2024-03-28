@@ -88,8 +88,18 @@ time.tzset()
 
 #%% READ PARAMETERS FROM THE PAR FILE
 
+
+# # Just overwrite the sys.argv for running from within an IDE
+# sys.argv = ['',
+#             '~/proj/Turner/med_spec_junk/med_spec_short.par',
+#             'YG',
+#             'SE14']
+
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
+
+# config.read('~/proj/Turner/med_spec_junk/med_spec_short.par')
+# print(config['DEFAULT'])
 
 # general info
 data_source = config['DEFAULT']['data_source']
@@ -284,8 +294,10 @@ for i in range(len(t)):
         print("{:>4.0%}".format(float(i)/len(t)) + ' complete.  Loading time: ' + t[i].strftime('%d %b %Y, %H:%M'))
         
         # Block progression of the code until all the parsl app_futures finish running
-        if file_counter % 3 == 0: # Run 3 days at a a time
+        if file_counter % 3 == 2: # Run 3 days at a a time
+            print('Starting blocking at: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now())
             done = [one_future.result() for one_future in all_futures]
+            print('Finished blocking at: ' + '{:%b %d, %Y, %H:%M}'.format(dt.datetime.now())
         # print(done)
 
         try:
