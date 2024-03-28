@@ -41,6 +41,7 @@ import configparser
 from clone_inv import clone_inv
 
 # custom function for calculating median spectra 
+sys.path.append('/data/stor/basic_data/seismic_data/git_repos/med_spec')
 import get_med_spectra_v1
 # custom functions for working with obspy UTCDateTimes
 from UTCDateTime_funcs import UTCfloor, UTCceil, UTC2dn, UTC2dt64 
