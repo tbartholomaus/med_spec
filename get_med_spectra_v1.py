@@ -92,7 +92,7 @@ def med_spec(tr, pp, Fs_old):
 #    DATA = WIND * DATA #; % Apply window to DATA, prior to FFT, to reduce sidelobe leakage.
 
 #    print('DATA ready for periodogram')
-    freqs, Pxx = signal.periodogram(DATA, fs=Fs, window='hanning', nfft=NFFT,
+    freqs, Pxx = signal.periodogram(DATA, fs=Fs, window='hann', nfft=NFFT,
                                     detrend='linear', return_onesided=True,
                                     scaling='density', axis=1)
     # With simple sin wave, TCB confirms Mar 1, 2018 
