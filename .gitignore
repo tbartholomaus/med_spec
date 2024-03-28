@@ -21,3 +21,4 @@ output/mpBBGL_short.pickle
 *.pickle
 plot_med_spec_HF.py
 *.afdesign
+runinfo/
